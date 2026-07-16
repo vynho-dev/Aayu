@@ -1,0 +1,46 @@
+<!-- @dsCard group="Aayu App" viewport="380x680" name="Claim flow" subtitle="Interactive click-through: landing → claim result → vault" -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:#EDEBE3;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Inter',sans-serif}</style>
+</head>
+<body>
+<div id="phone" style="width:380px;height:680px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 20px 50px rgba(4,44,44,0.18);position:relative;border:1px solid #D3D1C7"></div>
+<script type="text/babel" src="LandingScreen.jsx"></script>
+<script type="text/babel" src="AuthScreen.jsx"></script>
+<script type="text/babel" src="PatientPickerScreen.jsx"></script>
+<script type="text/babel" src="ConsentScreen.jsx"></script>
+<script type="text/babel" src="UploadScreen.jsx"></script>
+<script type="text/babel" src="ProcessingScreen.jsx"></script>
+<script type="text/babel" src="ClaimResultScreen.jsx"></script>
+<script type="text/babel" src="PolicyQAScreen.jsx"></script>
+<script type="text/babel" src="VaultScreen.jsx"></script>
+<script type="text/babel">
+function App(){
+  const [screen, setScreen] = React.useState('landing');
+  React.useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [screen]);
+  const go = s => setScreen(s);
+  React.useEffect(() => { if (screen === 'processing') { const t = setTimeout(()=>go('result'), 2600); return ()=>clearTimeout(t); } }, [screen]);
+  let node;
+  if (screen === 'landing') node = <window.LandingScreen onStart={()=>go('auth')} />;
+  else if (screen === 'auth') node = <window.AuthScreen onAuth={()=>go('patient')} />;
+  else if (screen === 'patient') node = <window.PatientPickerScreen onNext={()=>go('consent')} />;
+  else if (screen === 'consent') node = <window.ConsentScreen onAgree={()=>go('upload')} onClose={()=>go('patient')} />;
+  else if (screen === 'upload') node = <window.UploadScreen onNext={()=>go('processing')} />;
+  else if (screen === 'processing') node = <window.ProcessingScreen />;
+  else if (screen === 'result') node = <window.ClaimResultScreen onOpenQA={()=>go('qa')} onOpenVault={()=>go('vault')} />;
+  else if (screen === 'qa') node = <window.PolicyQAScreen onClose={()=>go('result')} />;
+  else if (screen === 'vault') node = <window.VaultScreen onClose={()=>go('result')} />;
+  return <div style={{width:'100%', height:'100%', overflowY:'auto'}}>{node}</div>;
+}
+ReactDOM.createRoot(document.getElementById('phone')).render(<App/>);
+</script>
+</body>
+</html>
