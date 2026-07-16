@@ -1,0 +1,6 @@
+allowBuilds:
+  '@clerk/shared': set this to true or false
+minimumReleaseAgeExclude:
+  - vite@8.1.5
+  - '@clerk/react@6.12.4'
+  - '@clerk/shared@4.25.4'

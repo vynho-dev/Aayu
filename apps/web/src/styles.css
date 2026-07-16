@@ -1,0 +1,70 @@
+@import "../../../design-system/tokens/fonts.css";
+@import "../../../design-system/tokens/colors.css";
+@import "../../../design-system/tokens/typography.css";
+@import "../../../design-system/tokens/spacing.css";
+@import "../../../design-system/tokens/radii.css";
+@import "../../../design-system/tokens/elevation.css";
+@import "../../../design-system/tokens/motion.css";
+@import "../../../design-system/tokens/base.css";
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f7f6f2;
+  color: #123c3a;
+  font-family: Inter, sans-serif;
+}
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: wait; opacity: 0.65; }
+
+label {
+  display: grid;
+  gap: 8px;
+  color: #123c3a;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+input, select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #c9d6d2;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 12px;
+  color: #123c3a;
+}
+
+input:focus, select:focus, button:focus-visible {
+  outline: 3px solid rgba(15, 110, 86, 0.2);
+  outline-offset: 2px;
+}
+
+.aayu-card {
+  border: 0.5px solid #d8e0dd;
+  border-radius: 12px;
+  background: #fff;
+  padding: 24px;
+}
+
+.primary-button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: #0f6e56;
+  padding: 12px 18px;
+  color: #fff;
+  font-weight: 500;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.primary-button:hover { background: #268c70; }
+.primary-button:active { transform: scale(0.98); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
