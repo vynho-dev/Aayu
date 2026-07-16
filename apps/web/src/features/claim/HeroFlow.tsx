@@ -14,11 +14,14 @@ import {
 import type { Patient } from "../../services/api";
 import { AppShell, type Tab } from "../app/AppShell";
 import { HealthScreen, SchemesScreen } from "../app/TabScreens";
+import { DocumentsScreen } from "../documents/DocumentsScreen";
+import { DOC_KIND_OPTIONS } from "../documents/kinds";
 import { HomeScreen } from "../home/HomeScreen";
 import { PolicyQAScreen } from "../policy/PolicyQAScreen";
 import { ClaimResultScreen } from "./ClaimResultScreen";
 
 type ClaimStep = "consent" | "upload" | "processing";
+type UploadMode = "claim" | "document";
 
 const clerkActive = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
@@ -34,7 +37,9 @@ export function HeroFlow() {
   const [consented, setConsented] = useState(false);
   const [tab, setTab] = useState<Tab>("home");
   const [claimStep, setClaimStep] = useState<ClaimStep | null>(null);
+  const [uploadMode, setUploadMode] = useState<UploadMode>("claim");
   const [qaOpen, setQaOpen] = useState(false);
+  const [docsOpen, setDocsOpen] = useState(false);
   const [jobId, setJobId] = useState("");
   const [message, setMessage] = useState("");
   const { data: job } = useJobQuery(jobId, { skip: !jobId, pollingInterval: jobId ? 3000 : 0 });
@@ -81,21 +86,32 @@ export function HeroFlow() {
     }
   }
 
-  const startClaim = () => {
+  const launchUpload = (mode: UploadMode) => {
     setMessage("");
+    setUploadMode(mode);
     setQaOpen(false);
+    setDocsOpen(false);
     setClaimStep(consented ? "upload" : "consent");
   };
+  const startClaim = () => launchUpload("claim");
 
   const backToHome = () => {
     setClaimStep(null);
     setQaOpen(false);
+    setDocsOpen(false);
     setJobId("");
     setTab("home");
   };
 
+  const uploadDone = () => {
+    setClaimStep(null);
+    setJobId("");
+    setDocsOpen(true);
+  };
+
   const onNav = (id: Tab) => {
     setQaOpen(false);
+    setDocsOpen(false);
     if (id === "claim") return startClaim();
     setClaimStep(null);
     setTab(id);
@@ -137,8 +153,8 @@ export function HeroFlow() {
     );
   }
 
-  // Result is derived from the completed job — no separate state to keep in sync.
-  const showResult = claimStep === "processing" && job?.status === "completed";
+  // The claim result is derived from the completed job (claim uploads only).
+  const showResult = uploadMode === "claim" && claimStep === "processing" && job?.status === "completed";
 
   let content;
   if (qaOpen) {
@@ -146,9 +162,11 @@ export function HeroFlow() {
       <PolicyQAScreen
         patient={patient}
         onBack={backToHome}
-        onNeedPolicy={() => { setQaOpen(false); startClaim(); }}
+        onNeedPolicy={() => launchUpload("document")}
       />
     );
+  } else if (docsOpen) {
+    content = <DocumentsScreen patient={patient} onBack={backToHome} onAdd={() => launchUpload("document")} />;
   } else if (showResult) {
     content = (
       <ClaimResultScreen
@@ -161,6 +179,7 @@ export function HeroFlow() {
     content = (
       <ClaimTask
         step={claimStep}
+        mode={uploadMode}
         patient={patient}
         job={job}
         message={message}
@@ -169,12 +188,13 @@ export function HeroFlow() {
         onConsent={consent}
         onSubmit={submitDocuments}
         onBack={backToHome}
+        onDone={uploadDone}
       />
     );
   } else if (tab === "home") {
-    content = <HomeScreen patient={patient} onNewClaim={startClaim} onAskPolicy={() => setQaOpen(true)} onNav={onNav} />;
+    content = <HomeScreen patient={patient} onNewClaim={startClaim} onAskPolicy={() => setQaOpen(true)} onViewDocuments={() => setDocsOpen(true)} onNav={onNav} />;
   } else if (tab === "health") {
-    content = <HealthScreen patient={patient} />;
+    content = <HealthScreen patient={patient} onViewDocuments={() => setDocsOpen(true)} />;
   } else if (tab === "schemes") {
     content = <SchemesScreen patient={patient} />;
   } else {
@@ -190,6 +210,7 @@ export function HeroFlow() {
 
 type ClaimTaskProps = {
   step: ClaimStep;
+  mode: UploadMode;
   patient: Patient | null;
   job: { status: string } | undefined;
   message: string;
@@ -198,9 +219,13 @@ type ClaimTaskProps = {
   onConsent: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onBack: () => void;
+  onDone: () => void;
 };
 
-function ClaimTask({ step, patient, job, message, consenting, uploading, onConsent, onSubmit, onBack }: ClaimTaskProps) {
+function ClaimTask({ step, mode, patient, job, message, consenting, uploading, onConsent, onSubmit, onBack, onDone }: ClaimTaskProps) {
+  const isClaim = mode === "claim";
+  const completed = job?.status === "completed";
+  const failed = job?.status === "failed";
   return (
     <div>
       <button type="button" onClick={onBack} className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-[#0F6E56]">
@@ -212,7 +237,7 @@ function ClaimTask({ step, patient, job, message, consenting, uploading, onConse
           <p className="mb-2 text-sm text-[#55706C]">Before the first upload</p>
           <h1 id="consent-title" className="mb-4 text-3xl font-medium text-[#042C53]">You stay in control</h1>
           <p className="mb-6 text-[#55706C]">
-            Aayu will securely process these documents to assess the claim and build{" "}
+            Aayu will securely process these documents to assess claims and build{" "}
             {patient?.name ?? "this patient"}&rsquo;s health record. We won&rsquo;t use them for advertising.
           </p>
           <button className="primary-button" onClick={onConsent} disabled={consenting}>I understand, continue</button>
@@ -221,13 +246,25 @@ function ClaimTask({ step, patient, job, message, consenting, uploading, onConse
 
       {step === "upload" && (
         <section aria-labelledby="upload-title">
-          <h1 id="upload-title" className="mb-3 text-3xl font-medium text-[#042C53]">Upload the claim document</h1>
-          <p className="mb-8 text-[#55706C]">Start with the rejection letter. You can add the policy and bills later.</p>
+          <h1 id="upload-title" className="mb-3 text-3xl font-medium text-[#042C53]">
+            {isClaim ? "Upload the claim document" : "Add a document"}
+          </h1>
+          <p className="mb-8 text-[#55706C]">
+            {isClaim
+              ? "Start with the rejection letter. You can add the policy and bills later."
+              : "Choose the document type and upload a PDF or photo. Aayu reads it into the health record."}
+          </p>
           <form className="aayu-card grid gap-5" onSubmit={onSubmit}>
-            <label>Document type<select name="kind" defaultValue="rejection_letter"><option value="rejection_letter">Rejection letter</option><option value="policy">Policy</option><option value="bill">Hospital bill</option><option value="discharge_summary">Discharge summary</option></select></label>
-            <label>PDF or photo<input required name="document" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" /></label>
+            <label>Document type
+              <select name="kind" defaultValue={isClaim ? "rejection_letter" : "lab_report"}>
+                {DOC_KIND_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+            <label>PDF, photo, or audio<input required name="document" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,audio/*" /></label>
             {message && <p role="alert" className="text-sm text-[#A23D32]">{message}</p>}
-            <button className="primary-button" disabled={uploading}>Upload and assess</button>
+            <button className="primary-button" disabled={uploading}>{isClaim ? "Upload and assess" : "Upload"}</button>
           </form>
         </section>
       )}
@@ -235,10 +272,28 @@ function ClaimTask({ step, patient, job, message, consenting, uploading, onConse
       {step === "processing" && (
         <>
           <StateCard
-            title={job?.status === "failed" ? "We couldn't read this document" : "Finding the relevant claim details…"}
-            body={job?.status === "failed" ? "Check the document and try uploading it again." : "Your file is safely uploaded. You can leave this screen while we process it."}
+            title={
+              failed
+                ? "We couldn't read this document"
+                : completed
+                  ? "Document added"
+                  : isClaim
+                    ? "Finding the relevant claim details…"
+                    : "Reading your document…"
+            }
+            body={
+              failed
+                ? "Check the document and try uploading it again."
+                : completed
+                  ? "It's been read into the health record."
+                  : "Your file is safely uploaded. You can leave this screen while we process it."
+            }
           />
-          <button type="button" onClick={onBack} className="primary-button mt-6">Back to dashboard</button>
+          {completed && !isClaim ? (
+            <button type="button" onClick={onDone} className="primary-button mt-6">View documents</button>
+          ) : (
+            <button type="button" onClick={onBack} className="primary-button mt-6">Back to dashboard</button>
+          )}
         </>
       )}
     </div>

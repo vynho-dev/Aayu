@@ -30,8 +30,30 @@ class ConsentView(BaseModel):
 
 class UploadIntentCreate(BaseModel):
     filename: str = Field(min_length=1, max_length=255)
-    content_type: Literal["application/pdf", "image/jpeg", "image/png", "image/webp"]
-    kind: Literal["rejection_letter", "policy", "bill", "discharge_summary"]
+    content_type: Literal[
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/wav",
+        "audio/x-wav",
+        "audio/mp4",
+        "audio/x-m4a",
+        "audio/webm",
+        "audio/aac",
+        "audio/ogg",
+    ]
+    kind: Literal[
+        "rejection_letter",
+        "policy",
+        "bill",
+        "discharge_summary",
+        "lab_report",
+        "prescription",
+        "doctor_note",
+    ]
 
 
 class UploadIntentView(BaseModel):
@@ -108,3 +130,12 @@ class PolicyDocumentView(BaseModel):
     document_id: uuid.UUID
     status: str
     index_ready: bool
+
+
+class DocumentSummaryView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    kind: str
+    filename: str
+    status: str
+    created_at: datetime

@@ -40,9 +40,29 @@ export type ClaimResult = {
   created_at: string;
 };
 
+export type HealthDocumentRef = { document_id: string; kind: string; filename: string; excerpt: string };
+
 export type HealthRecord = {
-  data: { summary?: string; amounts?: number[]; extracted_chars?: number };
+  data: {
+    summary?: string;
+    amounts?: number[];
+    conditions?: string[];
+    medications?: string[];
+    lab_findings?: string[];
+    procedures?: string[];
+    tests?: string[];
+    follow_up?: string;
+    documents?: HealthDocumentRef[];
+  };
   updated_at: string;
+};
+
+export type DocumentSummary = {
+  id: string;
+  kind: string;
+  filename: string;
+  status: string;
+  created_at: string;
 };
 
 export type SchemeMatch = { scheme_code: string; explanation: string; matched: boolean };
@@ -64,7 +84,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Patient", "Job", "Claim", "Health", "Scheme", "Policy"],
+  tagTypes: ["Patient", "Job", "Claim", "Health", "Scheme", "Policy", "Document"],
   endpoints: (build) => ({
     patients: build.query<Patient[], void>({
       query: () => "patients",
@@ -111,6 +131,10 @@ export const api = createApi({
       query: (patientId) => `patients/${patientId}/schemes`,
       providesTags: ["Scheme"],
     }),
+    documents: build.query<DocumentSummary[], string>({
+      query: (patientId) => `patients/${patientId}/documents`,
+      providesTags: ["Document"],
+    }),
     policyDocument: build.query<PolicyDocument, string>({
       query: (patientId) => `patients/${patientId}/policy-document`,
       providesTags: ["Policy"],
@@ -137,6 +161,7 @@ export const {
   useSchemesQuery,
   usePolicyDocumentQuery,
   useAskPolicyMutation,
+  useDocumentsQuery,
 } = api;
 
 export async function uploadFile(intent: UploadIntent, file: File, token: string | null) {

@@ -45,7 +45,7 @@ function QuickTile({ icon, title, value, sub, onClick }: { icon: IconName; title
   );
 }
 
-export function HomeScreen({ patient, onNewClaim, onAskPolicy, onNav }: { patient: Patient | null; onNewClaim: () => void; onAskPolicy: () => void; onNav: (id: Tab) => void }) {
+export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, onNav }: { patient: Patient | null; onNewClaim: () => void; onAskPolicy: () => void; onViewDocuments: () => void; onNav: (id: Tab) => void }) {
   const name = patient?.name ?? "your family";
   const { data: health } = useHealthQuery(patient?.id ?? "", { skip: !patient?.id });
   const { data: schemes } = useSchemesQuery(patient?.id ?? "", { skip: !patient?.id });
@@ -138,6 +138,18 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onNav }: { patien
             <span>
               <span className="block font-medium text-[#123C3A]">Ask about my policy</span>
               <span className="text-sm text-[#55706C]">Plain-language answers from your uploaded policy.</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={onViewDocuments}
+            className="aayu-card text-left"
+            style={{ display: "flex", alignItems: "center", gap: 12 }}
+          >
+            <Icon name="claim" size={22} color="var(--aayu-teal-600)" />
+            <span>
+              <span className="block font-medium text-[#123C3A]">Documents</span>
+              <span className="text-sm text-[#55706C]">Add bills, labs, prescriptions — all in one place.</span>
             </span>
           </button>
           <div>
