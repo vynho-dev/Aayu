@@ -5,8 +5,8 @@ import type { Tab } from "../app/AppShell";
 function SectionLabel({ children }: { children: string }) {
   return (
     <div
+      className="aayu-text-label"
       style={{
-        fontSize: 12,
         fontWeight: 500,
         letterSpacing: "0.04em",
         color: "var(--aayu-text-muted)",
@@ -38,9 +38,9 @@ function QuickTile({ icon, title, value, sub, onClick }: { icon: IconName; title
       }}
     >
       <Icon name={icon} size={22} color="var(--aayu-teal-600)" />
-      <div style={{ fontSize: 22, fontWeight: 500, color: "var(--aayu-ink-900)" }}>{value}</div>
-      <div style={{ fontSize: 13, color: "var(--aayu-text-secondary)" }}>{title}</div>
-      <div style={{ fontSize: 12, color: "var(--aayu-text-muted)" }}>{sub}</div>
+      <div className="aayu-text-h1" style={{ fontWeight: 500, color: "var(--aayu-ink-900)" }}>{value}</div>
+      <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>{title}</div>
+      <div className="aayu-text-label" style={{ color: "var(--aayu-text-muted)" }}>{sub}</div>
     </button>
   );
 }
@@ -55,8 +55,8 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
       {/* Header: greeting + patient chip */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 500, color: "var(--aayu-text-primary)" }}>Hi there</div>
-          <div style={{ fontSize: 13, color: "var(--aayu-text-secondary)", marginTop: 2 }}>Here&rsquo;s where {name}&rsquo;s care stands.</div>
+          <div className="aayu-text-display" style={{ fontWeight: 500, color: "var(--aayu-text-primary)" }}>Hi there</div>
+          <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)", marginTop: 2 }}>Here&rsquo;s where {name}&rsquo;s care stands.</div>
         </div>
         <button
           onClick={() => onNav("profile")}
@@ -73,6 +73,7 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
           }}
         >
           <span
+            className="aayu-text-caption"
             style={{
               width: 28,
               height: 28,
@@ -83,12 +84,11 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 500,
-              fontSize: 12,
             }}
           >
             {(patient?.name ?? "?").charAt(0).toUpperCase()}
           </span>
-          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--aayu-text-primary)" }}>{patient?.name ?? "Patient"}</span>
+          <span className="aayu-text-body-sm" style={{ fontWeight: 500, color: "var(--aayu-text-primary)" }}>{patient?.name ?? "Patient"}</span>
           <Icon name="chevron" size={16} color="var(--aayu-text-muted)" />
         </button>
       </div>
@@ -106,8 +106,8 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
             gap: 12,
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 500, color: "var(--aayu-teal-800)" }}>Start your first claim</div>
-          <div style={{ fontSize: 14, color: "var(--aayu-text-secondary)", lineHeight: 1.6 }}>
+          <div className="aayu-text-h2" style={{ fontWeight: 500, color: "var(--aayu-teal-800)" }}>Start your first claim</div>
+          <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>
             Upload a rejection letter and we&rsquo;ll read it, find the clause the insurer missed, and draft a
             clause-cited appeal. You pay only if we win.
           </div>
@@ -136,8 +136,8 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
           >
             <Icon name="chat" size={22} color="var(--aayu-teal-600)" />
             <span>
-              <span className="block font-medium text-[#123C3A]">Ask about my policy</span>
-              <span className="text-sm text-[#55706C]">Plain-language answers from your uploaded policy.</span>
+              <span className="aayu-text-body-sm block" style={{ fontWeight: 500, color: "var(--aayu-text-primary)" }}>Ask about my policy</span>
+              <span className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>Plain-language answers from your uploaded policy.</span>
             </span>
           </button>
           <button
@@ -148,8 +148,8 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
           >
             <Icon name="claim" size={22} color="var(--aayu-teal-600)" />
             <span>
-              <span className="block font-medium text-[#123C3A]">Documents</span>
-              <span className="text-sm text-[#55706C]">Add bills, labs, prescriptions — all in one place.</span>
+              <span className="aayu-text-body-sm block" style={{ fontWeight: 500, color: "var(--aayu-text-primary)" }}>Documents</span>
+              <span className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>Add bills, labs, prescriptions — all in one place.</span>
             </span>
           </button>
           <div>
@@ -162,7 +162,7 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
                 padding: "var(--space-5)",
               }}
             >
-              <div style={{ fontSize: 14, color: "var(--aayu-text-muted)", lineHeight: 1.6 }}>
+              <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-muted)" }}>
                 Nothing yet. Your appeal, health records, and scheme matches will appear here after your first claim.
               </div>
             </div>
@@ -171,6 +171,7 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
       </div>
 
       <div
+        className="aayu-text-body-sm"
         style={{
           display: "inline-flex",
           alignItems: "center",
@@ -180,7 +181,6 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
           borderRadius: "var(--radius-pill)",
           background: "var(--aayu-success-bg)",
           color: "var(--aayu-teal-900)",
-          fontSize: 13,
           fontWeight: 500,
         }}
       >

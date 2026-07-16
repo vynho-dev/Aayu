@@ -51,19 +51,19 @@ export function SignInScreen() {
   const [signup, setSignup] = useState(true);
 
   return (
-    <main className="grid min-h-screen w-full place-items-center bg-[#EAF3F0] p-4 sm:p-8">
-      <div className="grid w-full max-w-[1000px] overflow-hidden rounded-2xl bg-white shadow-[0_8px_24px_rgba(4,44,44,0.10)] md:grid-cols-2">
+    <main className="grid min-h-screen w-full place-items-center p-4 sm:p-8">
+      <div className="grid w-full max-w-7xl overflow-hidden rounded-2xl bg-(--aayu-surface-card) shadow-(--elevation-2) md:grid-cols-2">
         {/* Brand panel */}
-        <aside className="hidden flex-col gap-6 bg-[#E1F5EE] p-8 md:flex">
-          <span className="text-2xl font-medium text-[#0F6E56]">Aayu</span>
-          <h1 className="text-[30px] font-medium leading-tight text-[#042C53]">
+        <aside className="hidden flex-col gap-6 bg-(--aayu-teal-50) p-8 md:flex md:h-full">
+          <span className="aayu-text-h1 font-medium text-(--aayu-teal-600)">Aayu</span>
+          <h1 className="aayu-text-display font-medium leading-tight text-(--aayu-ink-900)">
             Your family&rsquo;s health,
             <br />
-            in the <span className="underline decoration-[#1D9E75] decoration-2 underline-offset-4">best hands</span>
+            in the <span className="underline decoration-(--aayu-teal-400) decoration-2 underline-offset-4">best hands</span>
           </h1>
-          <div className="flex w-fit items-center gap-3 rounded-full border border-[#E4E2DA] bg-white px-3 py-2 shadow-[0_1px_2px_rgba(4,44,44,0.06)]">
+          <div className="flex w-fit items-center gap-3 rounded-full border border-(--aayu-border) bg-(--aayu-surface-card) px-3 py-2 shadow-(--elevation-1)">
             <AvatarStack />
-            <span className="text-sm font-medium text-[#1F2421]">
+            <span className="aayu-text-body-sm font-medium text-(--aayu-text-primary)">
               1,293 families protected
             </span>
           </div>
@@ -71,15 +71,15 @@ export function SignInScreen() {
             src={HERO_IMG}
             alt="A caregiver helping an elderly couple at home"
             loading="lazy"
-            className="mt-auto h-64 w-full rounded-xl object-cover"
+            className="min-h-64 w-full flex-1 rounded-xl object-cover"
           />
         </aside>
 
         {/* Auth panel */}
         <section className="flex flex-col items-center justify-center gap-5 px-4 py-6 sm:p-10">
-          <span className="text-2xl font-medium text-[#0F6E56] md:hidden">Aayu</span>
+          <span className="aayu-text-h1 font-medium text-(--aayu-teal-600) md:hidden">Aayu</span>
 
-          <div className="flex w-full max-w-[380px] justify-center">
+          <div className="flex w-full max-w-100 justify-center">
             {signup ? (
               <SignUp routing="hash" appearance={appearance} />
             ) : (
@@ -90,13 +90,13 @@ export function SignInScreen() {
           <button
             type="button"
             onClick={() => setSignup((s) => !s)}
-            className="text-sm text-[#0F6E56]"
+            className="aayu-text-body-sm text-(--aayu-teal-600)"
             style={{ fontFamily: "var(--font-sans)" }}
           >
             {signup ? "Already have an account? Log in" : "New here? Create an account"}
           </button>
 
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E1F5EE] px-3 py-1.5 text-[13px] font-medium text-[#04342C]">
+          <span className="aayu-text-caption inline-flex items-center gap-1.5 rounded-full bg-(--aayu-teal-50) px-3 py-1.5 font-medium text-(--aayu-teal-900)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <rect x="3" y="11" width="18" height="11" rx="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
