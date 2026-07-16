@@ -75,6 +75,8 @@ components/
   navigation/                 ListRow, BottomSheet
 ui_kits/aayu-app/            interactive click-through: Landing → Auth → Patient picker → Consent →
                               Upload → Processing → Claim result → Policy Q&A / Vault
+                              prototype.html → full end-to-end tappable app (login → claim → Home/Health/Claim/Schemes/Profile, phone + desktop)
+                              a11y.html      → WCAG 2.1 AA audit (checklist, findings, contrast, manual-test plan)
 SKILL.md                     portable skill definition for Claude Code / other agents
 ```
 

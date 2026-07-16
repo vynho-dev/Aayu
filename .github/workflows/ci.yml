@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: aayu
+          POSTGRES_USER: aayu
+          POSTGRES_PASSWORD: aayu
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aayu"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      AAYU_ENVIRONMENT: test
+      AAYU_AUTH_MODE: dev
+      AAYU_DATABASE_URL: postgresql+psycopg://aayu:aayu@localhost:5432/aayu
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --project apps/backend --locked --all-groups
+      - run: uv run --project apps/backend ruff check apps/backend
+      - run: uv run --project apps/backend pyright apps/backend/src apps/backend/tests
+      - run: uv run --project apps/backend pytest -c apps/backend/pyproject.toml apps/backend/tests
+      - run: cd apps/backend && uv run alembic upgrade head
+      - run: docker build apps/backend
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: corepack pnpm --dir apps/web install --frozen-lockfile
+      - run: corepack pnpm --dir apps/web check
+      - run: corepack pnpm --dir apps/web test
+      - run: docker build -f apps/web/Dockerfile .

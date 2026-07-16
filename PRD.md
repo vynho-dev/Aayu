@@ -181,7 +181,7 @@ IDs are stable references for agents. **[MVP]** = in first release. **[FUTURE]**
 - **Auth:** Managed identity provider (e.g., AWS Cognito) — do not hand-roll auth.
 - **Storage:** Object storage for documents (S3, encrypted); relational DB (Postgres/RDS) for structured data.
 - **AI layer:** Cloud LLM API (Claude/OpenAI) with multimodal/vision for scanned documents.
-- **Hosting:** Managed hosting (Amplify / App Runner / Lambda). No Kubernetes, no custom VPC networking in MVP.
+- **Hosting:** Managed hosting (S3/CloudFront + ECS Fargate + Lambda). No Kubernetes or bespoke network topology in MVP; use only the minimal private networking required by managed RDS/Redis.
 
 **Core data model (authoritative for MVP):**
 
@@ -279,7 +279,8 @@ Aayu uses **one AI engine with three "heads"** — not three separate AI product
 
 - Stack fixed: **React + Python + AWS managed services + cloud LLM API.**
 - Auth via managed provider only; no custom auth.
-- Serverless/managed hosting only; **no Kubernetes, no custom VPC networking, no self-managed infra.**
+- Serverless/managed hosting only; **no Kubernetes or self-managed data services.** A minimal managed VPC for RDS and optional Redis is allowed.
+- EKS is a post-MVP deployment option only when multiple independently scaled workloads or specialized scheduling justify it.
 - Scheme matching is **rule-based against a small curated list** — not a full eligibility engine.
 - Success-fee billing/payments are **not** built in MVP.
 - No native mobile app — mobile web only.

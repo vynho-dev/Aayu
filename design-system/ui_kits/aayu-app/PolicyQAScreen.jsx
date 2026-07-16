@@ -10,7 +10,7 @@ function PolicyQAScreen({onClose}) {
   return (
     <div style={{display:'flex', flexDirection:'column', minHeight:520, background:'var(--aayu-surface-page)'}}>
       <div style={{display:'flex', alignItems:'center', gap:10, padding:'16px 20px', borderBottom:'0.5px solid var(--aayu-border)', background:'var(--aayu-surface-card)'}}>
-        <button onClick={onClose} style={{border:'none', background:'none', cursor:'pointer', color:'var(--aayu-text-secondary)'}}><i data-lucide="arrow-left" style={{width:20, height:20}}></i></button>
+        <button onClick={onClose} aria-label="Go back" style={{border:'none', background:'none', cursor:'pointer', color:'var(--aayu-text-secondary)'}}><i data-lucide="arrow-left" style={{width:20, height:20}} aria-hidden="true"></i></button>
         <div style={{fontSize:16, fontWeight:500, color:'var(--aayu-text-primary)'}}>Explain my policy</div>
       </div>
       <div style={{flex:1, padding:20, display:'flex', flexDirection:'column', gap:12, overflowY:'auto'}}>

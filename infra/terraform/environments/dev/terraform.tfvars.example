@@ -1,0 +1,3 @@
+api_image    = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/aayu-development-api:replace-with-commit-sha"
+clerk_issuer = "https://your-instance.clerk.accounts.dev"
+web_origin   = "https://replace-with-cloudfront-or-custom-domain"

@@ -1,0 +1,6 @@
+.git
+.env
+apps/backend/.venv
+apps/web/node_modules
+apps/web/dist
+design-system/_ds_bundle.js

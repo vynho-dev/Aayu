@@ -1,0 +1,154 @@
+<!-- @dsCard group="Aayu App" viewport="1180x760" name="End-to-end prototype" subtitle="Fully tappable: login → consent → upload → claim result → Home/Health/Claim/Schemes/Profile" -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  html,body{margin:0}
+  body{background:#EDEBE3;font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;box-sizing:border-box}
+  a{color:var(--aayu-teal-600);text-decoration:none}
+  a:hover{color:var(--aayu-teal-400)}
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;justify-content:center}
+  .tb-btn{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:999px;border:0.5px solid #D3D1C7;background:#fff;color:var(--aayu-text-secondary);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer}
+  .tb-btn:hover{color:var(--aayu-teal-600)}
+  .tb-seg{display:inline-flex;background:#fff;border:0.5px solid #D3D1C7;border-radius:999px;padding:3px}
+  .tb-seg button{border:none;background:none;height:32px;padding:0 14px;border-radius:999px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--aayu-text-muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .tb-seg button[aria-pressed="true"]{background:var(--aayu-teal-600);color:#fff}
+  .device{background:#fff;position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(4,44,44,0.20);border:1px solid #D3D1C7;transition:width .3s ease,height .3s ease,border-radius .3s ease}
+  .device.phone{width:390px;height:760px;border-radius:30px}
+  .device.desktop{width:1120px;height:720px;border-radius:16px}
+  @media (max-width:1180px){.device.desktop{width:94vw}}
+  .scrim{position:absolute;inset:0;background:rgba(4,44,44,0.35);z-index:40}
+</style>
+</head>
+<body>
+<div class="toolbar" id="toolbar"></div>
+<div class="device phone" id="device"></div>
+
+<script type="text/babel" src="AppChrome.jsx"></script>
+<script type="text/babel" src="LoginScreen.jsx"></script>
+<script type="text/babel" src="ConsentScreenFull.jsx"></script>
+<script type="text/babel" src="UploadScreen.jsx"></script>
+<script type="text/babel" src="ProcessingScreen.jsx"></script>
+<script type="text/babel" src="ClaimResultScreen.jsx"></script>
+<script type="text/babel" src="PolicyQAScreen.jsx"></script>
+<script type="text/babel" src="VaultScreen.jsx"></script>
+<script type="text/babel" src="HomeScreen.jsx"></script>
+<script type="text/babel" src="HealthScreen.jsx"></script>
+<script type="text/babel" src="SchemesScreen.jsx"></script>
+<script type="text/babel" src="ProfileScreen.jsx"></script>
+
+<script type="text/babel">
+const { AppChrome, LoginScreen, ConsentScreenFull, UploadScreen, ProcessingScreen, ClaimResultScreen, PolicyQAScreen, VaultScreen, HomeScreen, HealthScreen, SchemesScreen, ProfileScreen } = window;
+
+// Footer action bar used to progress the onboarding / claim task
+function TaskFooter({label, onClick}){
+  return (
+    <div style={{position:'sticky', bottom:0, padding:'12px 20px 16px', background:'linear-gradient(to top, var(--aayu-surface-page) 72%, rgba(247,246,242,0))'}}>
+      <button onClick={onClick} style={{width:'100%', height:52, borderRadius:'var(--radius-sm)', border:'none', background:'var(--aayu-teal-600)', color:'#fff', fontFamily:'var(--font-sans)', fontSize:16, fontWeight:500, cursor:'pointer'}}>{label}</button>
+    </div>
+  );
+}
+
+function App(){
+  const [wide, setWide] = React.useState(false);
+  const [auth, setAuth] = React.useState(false);
+  const [consented, setConsented] = React.useState(false);
+  const [tab, setTab] = React.useState('home');
+  const [overlay, setOverlay] = React.useState(null);   // 'qa' | 'vault'
+  const [claim, setClaim] = React.useState(null);        // null | 'consent' | 'upload' | 'processing' | 'result'
+
+  React.useEffect(() => { if (window.lucide) window.lucide.createIcons(); });
+
+  // auto-advance processing
+  React.useEffect(() => {
+    if (claim === 'processing') { const t = setTimeout(()=>setClaim('result'), 2600); return ()=>clearTimeout(t); }
+  }, [claim]);
+
+  const reset = () => { setAuth(false); setConsented(false); setTab('home'); setOverlay(null); setClaim(null); };
+
+  const launchClaim = () => setClaim(consented ? 'upload' : 'consent');
+  const finishClaim = () => { setClaim(null); setTab('home'); };
+
+  const onNav = (id) => {
+    if (id === 'claim') { launchClaim(); return; }
+    setTab(id);
+  };
+
+  // ---- Toolbar (rendered into external node) ----
+  const toolbarRootRef = React.useRef(null);
+  React.useEffect(() => {
+    if (!toolbarRootRef.current) toolbarRootRef.current = ReactDOM.createRoot(document.getElementById('toolbar'));
+    toolbarRootRef.current.render(
+      <React.Fragment>
+        <div className="tb-seg" role="group" aria-label="Device size">
+          <button aria-pressed={!wide} onClick={()=>setWide(false)}><i data-lucide="smartphone" style={{width:15,height:15}}></i>Phone</button>
+          <button aria-pressed={wide} onClick={()=>setWide(true)}><i data-lucide="monitor" style={{width:15,height:15}}></i>Desktop</button>
+        </div>
+        <button className="tb-btn" onClick={reset}><i data-lucide="rotate-ccw" style={{width:15,height:15}}></i>Restart flow</button>
+      </React.Fragment>);
+    if (window.lucide) window.lucide.createIcons();
+  }, [wide, auth, consented, tab, claim, overlay]);
+
+  // keep device element sized to the mode
+  React.useEffect(() => {
+    const d = document.getElementById('device');
+    d.className = 'device ' + (wide ? 'desktop' : 'phone');
+  }, [wide]);
+
+  let content;
+
+  // 1) Not authenticated → login
+  if (!auth) {
+    content = <div style={{height:'100%', overflowY:'auto'}}><LoginScreen wide={wide} onAuth={()=>{ setAuth(true); setClaim('consent'); }} /></div>;
+  }
+  // 2) Claim task (full-screen over the app) — first run or from Claim tab
+  else if (claim) {
+    let inner;
+    if (claim === 'consent') inner = <ConsentScreenFull wide={wide} onAgree={()=>{ setConsented(true); setClaim('upload'); }} onClose={finishClaim} />;
+    else if (claim === 'upload') inner = <UploadScreen onNext={()=>setClaim('processing')} />;
+    else if (claim === 'processing') inner = <ProcessingScreen />;
+    else if (claim === 'result') inner = (
+      <div>
+        <ClaimResultScreen onOpenQA={()=>setOverlay('qa')} onOpenVault={()=>setOverlay('vault')} />
+        <TaskFooter label="Go to my dashboard" onClick={finishClaim} />
+      </div>
+    );
+    content = <div style={{height:'100%', overflowY:'auto', background:'var(--aayu-surface-page)', position:'relative'}}>{inner}</div>;
+  }
+  // 3) Main app with nav
+  else {
+    let screen;
+    if (tab === 'home') screen = <HomeScreen wide={wide} onNav={onNav} onReview={()=>setClaim('result')} onAsk={()=>setOverlay('qa')} />;
+    else if (tab === 'health') screen = <HealthScreen wide={wide} />;
+    else if (tab === 'schemes') screen = <SchemesScreen wide={wide} />;
+    else if (tab === 'profile') screen = <ProfileScreen wide={wide} />;
+    content = <AppChrome active={tab} onNav={onNav} wide={wide}>{screen}</AppChrome>;
+  }
+
+  return (
+    <div style={{position:'relative', width:'100%', height:'100%'}}>
+      {content}
+      {overlay && (
+        <React.Fragment>
+          <div className="scrim" onClick={()=>setOverlay(null)}></div>
+          <div style={{position:'absolute', inset:0, zIndex:50, background:'var(--aayu-surface-page)'}}>
+            {overlay === 'qa' && <PolicyQAScreen onClose={()=>setOverlay(null)} />}
+            {overlay === 'vault' && <VaultScreen onClose={()=>setOverlay(null)} />}
+          </div>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('device')).render(<App/>);
+</script>
+</body>
+</html>
