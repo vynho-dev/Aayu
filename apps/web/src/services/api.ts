@@ -9,6 +9,8 @@ export type Patient = {
   date_of_birth: string | null;
 };
 
+export type PatientInput = Pick<Patient, "name" | "relationship" | "date_of_birth">;
+
 export type UploadIntent = {
   document_id: string;
   upload_url: string;
@@ -54,7 +56,7 @@ export type HealthRecord = {
     follow_up?: string;
     documents?: HealthDocumentRef[];
   };
-  updated_at: string;
+  updated_at: string | null;
 };
 
 export type DocumentSummary = {
@@ -90,8 +92,12 @@ export const api = createApi({
       query: () => "patients",
       providesTags: ["Patient"],
     }),
-    createPatient: build.mutation<Patient, Pick<Patient, "name" | "relationship">>({
+    createPatient: build.mutation<Patient, PatientInput>({
       query: (body) => ({ url: "patients", method: "POST", body }),
+      invalidatesTags: ["Patient"],
+    }),
+    updatePatient: build.mutation<Patient, { patientId: string; body: PatientInput }>({
+      query: ({ patientId, body }) => ({ url: `patients/${patientId}`, method: "PUT", body }),
       invalidatesTags: ["Patient"],
     }),
     acceptConsent: build.mutation<void, string>({
@@ -153,6 +159,7 @@ export const {
   useAcceptConsentMutation,
   useCompleteUploadMutation,
   useCreatePatientMutation,
+  useUpdatePatientMutation,
   useCreateUploadIntentMutation,
   useJobQuery,
   usePatientsQuery,

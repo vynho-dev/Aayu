@@ -9,9 +9,10 @@ import {
   useCreateUploadIntentMutation,
   useJobQuery,
   usePatientsQuery,
+  useUpdatePatientMutation,
   uploadFile,
 } from "../../services/api";
-import type { Patient } from "../../services/api";
+import type { Patient, PatientInput } from "../../services/api";
 import { AppShell, type Tab } from "../app/AppShell";
 import { HealthScreen, SchemesScreen } from "../app/TabScreens";
 import { DocumentsScreen } from "../documents/DocumentsScreen";
@@ -19,6 +20,7 @@ import { DOC_KIND_OPTIONS } from "../documents/kinds";
 import { HomeScreen } from "../home/HomeScreen";
 import { PolicyQAScreen } from "../policy/PolicyQAScreen";
 import { ClaimResultScreen } from "./ClaimResultScreen";
+import { PatientForm } from "../patients/PatientForm";
 
 type ClaimStep = "consent" | "upload" | "processing";
 type UploadMode = "claim" | "document";
@@ -29,12 +31,12 @@ export function HeroFlow() {
   const token = useAppSelector((state) => state.auth.token);
   const { data: patients = [], isLoading } = usePatientsQuery();
   const [createPatient, patientState] = useCreatePatientMutation();
+  const [updatePatient, updatePatientState] = useUpdatePatientMutation();
   const [acceptConsent, consentState] = useAcceptConsentMutation();
   const [createIntent, intentState] = useCreateUploadIntentMutation();
   const [completeUpload] = useCompleteUploadMutation();
 
   const [patientId, setPatientId] = useState("");
-  const [previousPatientId, setPreviousPatientId] = useState("");
   const [consented, setConsented] = useState(false);
   const [tab, setTab] = useState<Tab>("home");
   const [claimStep, setClaimStep] = useState<ClaimStep | null>(null);
@@ -43,31 +45,39 @@ export function HeroFlow() {
   const [docsOpen, setDocsOpen] = useState(false);
   const [jobId, setJobId] = useState("");
   const [message, setMessage] = useState("");
+  const [editingPatient, setEditingPatient] = useState<Patient | "new" | null>(null);
+  const [patientMessage, setPatientMessage] = useState("");
   const { data: job } = useJobQuery(jobId, { skip: !jobId, pollingInterval: jobId ? 3000 : 0 });
 
   const patient = patients.find((p) => p.id === patientId) ?? null;
 
-  const switchPatient = () => {
-    setPreviousPatientId(patientId);
-    setPatientId("");
-  };
+  async function createAndSelectPatient(input: PatientInput, destination: Tab) {
+    setPatientMessage("");
+    try {
+      const created = await createPatient(input).unwrap();
+      setPatientId(created.id);
+      setTab(destination);
+      return true;
+    } catch {
+      setPatientMessage("We couldn't save this patient. Check the details and try again.");
+      return false;
+    }
+  }
 
-  const cancelSwitchPatient = () => {
-    setPatientId(previousPatientId);
-    setPreviousPatientId("");
-    setTab("profile");
-  };
-
-  async function addPatient(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const created = await createPatient({
-      name: String(data.get("name")),
-      relationship: String(data.get("relationship")),
-    }).unwrap();
-    // After profile setup, land on the dashboard — not straight into the upload flow.
-    setPatientId(created.id);
-    setTab("home");
+  async function savePatient(input: PatientInput) {
+    if (editingPatient === "new") {
+      if (await createAndSelectPatient(input, "profile")) setEditingPatient(null);
+      return;
+    }
+    setPatientMessage("");
+    try {
+      const saved = await updatePatient({ patientId: editingPatient!.id, body: input }).unwrap();
+      setPatientId(saved.id);
+      setEditingPatient(null);
+      setTab("profile");
+    } catch {
+      setPatientMessage("We couldn't save this patient. Check the details and try again.");
+    }
   }
 
   async function consent() {
@@ -137,15 +147,6 @@ export function HeroFlow() {
       <main className="mx-auto min-h-screen max-w-200 px-4 py-8 sm:py-14">
         <header className="aayu-text-h1 mb-10 font-medium text-(--aayu-ink-900)">Aayu</header>
         <section aria-labelledby="patient-title">
-          {previousPatientId && (
-            <button
-              type="button"
-              onClick={cancelSwitchPatient}
-              className="aayu-text-body-sm mb-6 inline-flex items-center gap-1 font-medium text-(--aayu-teal-600)"
-            >
-              ← Back to profile
-            </button>
-          )}
           <p className="aayu-text-body-sm mb-2 text-(--aayu-text-secondary)">First, who are we helping?</p>
           <h1 id="patient-title" className="aayu-text-display mb-3 font-medium text-(--aayu-ink-900)">Create a patient profile</h1>
           <p className="aayu-text-body-sm mb-8 text-(--aayu-text-secondary)">Their claim documents and health record stay together.</p>
@@ -164,11 +165,7 @@ export function HeroFlow() {
               ))}
             </div>
           )}
-          <form className="aayu-card grid gap-5" onSubmit={addPatient}>
-            <label>Name<input required name="name" placeholder="e.g. Appa" maxLength={120} /></label>
-            <label>Relationship<select required name="relationship" defaultValue="father"><option value="father">Father</option><option value="mother">Mother</option><option value="spouse">Spouse</option><option value="other">Other</option></select></label>
-            <button className="primary-button" disabled={patientState.isLoading}>Continue with this patient</button>
-          </form>
+          <PatientForm busy={patientState.isLoading} message={patientMessage} onSave={async (input) => { await createAndSelectPatient(input, "home"); }} />
         </section>
       </main>
     );
@@ -219,7 +216,28 @@ export function HeroFlow() {
   } else if (tab === "schemes") {
     content = <SchemesScreen patient={patient} />;
   } else {
-    content = <ProfileScreen patient={patient} onSwitchPatient={switchPatient} />;
+    content = editingPatient ? (
+      <section aria-labelledby="patient-editor-title" className="grid gap-5">
+        <div>
+          <p className="aayu-text-body-sm mb-2 text-(--aayu-text-secondary)">Patient profile</p>
+          <h1 id="patient-editor-title" className="aayu-text-display font-medium text-(--aayu-ink-900)">{editingPatient === "new" ? "Add a patient" : "Edit patient"}</h1>
+        </div>
+        <PatientForm
+          patient={editingPatient === "new" ? undefined : editingPatient}
+          busy={patientState.isLoading || updatePatientState.isLoading}
+          onCancel={() => setEditingPatient(null)}
+          onSave={savePatient}
+          submitLabel={editingPatient === "new" ? "Add patient" : undefined}
+          message={patientMessage}
+        />
+      </section>
+    ) : <ProfileScreen
+      patient={patient}
+      patients={patients}
+      onAddPatient={() => { setPatientMessage(""); setEditingPatient("new"); }}
+      onEditPatient={() => { if (patient) { setPatientMessage(""); setEditingPatient(patient); } }}
+      onSelectPatient={(id) => setPatientId(id)}
+    />;
   }
 
   return (
@@ -321,19 +339,43 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
   );
 }
 
-function ProfileScreen({ patient, onSwitchPatient }: { patient: Patient | null; onSwitchPatient: () => void }) {
+function ProfileScreen({ patient, patients, onAddPatient, onEditPatient, onSelectPatient }: {
+  patient: Patient | null;
+  patients: Patient[];
+  onAddPatient: () => void;
+  onEditPatient: () => void;
+  onSelectPatient: (id: string) => void;
+}) {
   return (
     <section aria-labelledby="profile-title" className="grid gap-5">
       <h1 id="profile-title" className="aayu-text-display font-medium text-(--aayu-ink-900)">Profile</h1>
-      <div className="aayu-card grid gap-1">
-        <span className="aayu-text-body-sm font-medium text-(--aayu-text-primary)">{patient?.name ?? "Patient"}</span>
-        <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{patient?.relationship ?? ""}</span>
-      </div>
       <div className="aayu-card flex items-center gap-3">
         {clerkActive ? <UserButton /> : null}
         <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{clerkActive ? "Manage your account or sign out" : "Development session"}</span>
       </div>
-      <button type="button" onClick={onSwitchPatient} className="aayu-text-body-sm text-left font-medium text-(--aayu-teal-600)">Switch patient</button>
+      <div className="grid gap-3">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="aayu-text-label font-medium uppercase tracking-wide text-(--aayu-text-secondary)">Patients you manage</h2>
+          <button type="button" onClick={onAddPatient} className="aayu-text-body-sm font-medium text-(--aayu-teal-600)">Add patient</button>
+        </div>
+        {patients.map((existing) => {
+          const selected = existing.id === patient?.id;
+          return (
+            <button
+              type="button"
+              key={existing.id}
+              onClick={() => onSelectPatient(existing.id)}
+              className="aayu-card flex items-center justify-between gap-4 text-left"
+              style={{ borderColor: selected ? "var(--aayu-teal-600)" : undefined }}
+            >
+              <span className="grid gap-1"><span className="aayu-text-body-sm font-medium text-(--aayu-text-primary)">{existing.name}</span><span className="aayu-text-body-sm text-(--aayu-text-secondary)">{existing.relationship}{existing.date_of_birth ? ` · ${existing.date_of_birth}` : ""}</span></span>
+              <span className="aayu-text-body-sm font-medium text-(--aayu-teal-600)">{selected ? "Current" : "Switch"}</span>
+            </button>
+          );
+        })}
+      </div>
+      <button type="button" onClick={onEditPatient} className="secondary-button justify-self-start">Edit current patient</button>
+      <p className="aayu-text-body-sm text-(--aayu-text-secondary)">Your documents stay encrypted and linked only to the patient you select.</p>
     </section>
   );
 }

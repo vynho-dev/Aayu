@@ -88,6 +88,17 @@ input:focus, select:focus, button:focus-visible {
 .primary-button:hover { background: var(--aayu-teal-400); }
 .primary-button:active { transform: scale(0.98); }
 
+.secondary-button {
+  min-height: var(--tap-target);
+  border: 0.5px solid var(--aayu-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--aayu-surface-card);
+  padding: var(--space-3) var(--space-5);
+  color: var(--aayu-teal-800);
+  font-size: var(--text-body-size);
+  font-weight: 500;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }

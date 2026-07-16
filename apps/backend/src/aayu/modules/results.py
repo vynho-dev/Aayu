@@ -43,13 +43,13 @@ async def get_health(
     patient_id: uuid.UUID,
     user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_session)],
-) -> HealthRecord:
+) -> HealthRecord | HealthRecordView:
     await owned_patient(patient_id, user, session)
     record = await session.scalar(
         select(HealthRecord).where(HealthRecord.patient_id == patient_id)
     )
     if record is None:
-        raise HTTPException(status_code=404, detail="No health record yet")
+        return HealthRecordView(data={}, updated_at=None)
     return record
 
 
