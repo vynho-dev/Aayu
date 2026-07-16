@@ -9,7 +9,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from aayu.config import get_settings
 from aayu.database import get_session
-from aayu.modules import claim_references, consents, documents, patients, policy_chat
+from aayu.modules import (
+    claim_references,
+    consents,
+    documents,
+    patients,
+    policy_chat,
+    results,
+    scheme_matches,
+)
 
 
 @asynccontextmanager
@@ -31,6 +39,8 @@ app.include_router(consents.router, prefix="/v1")
 app.include_router(documents.router, prefix="/v1")
 app.include_router(claim_references.router, prefix="/v1")
 app.include_router(policy_chat.router, prefix="/v1")
+app.include_router(results.router, prefix="/v1")
+app.include_router(scheme_matches.router, prefix="/v1")
 
 
 @app.get("/health/live", tags=["health"])
