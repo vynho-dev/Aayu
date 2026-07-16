@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+
+# AI coding assistant local skill installs (vendored by uipro, not project source)
+.claude/skills/
+.codex/skills/
+
+# OS
+.DS_Store
+Thumbs.db
