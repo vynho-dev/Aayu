@@ -1,0 +1,197 @@
+<!-- @dsCard group="Blueprint" viewport="1240x900" name="Dev handoff spec" subtitle="Decisions, breakpoints, tokens, redlines, component+state list, checklist" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aayu — Dev Handoff Spec</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+body{margin:0;background:var(--aayu-surface-page);color:var(--aayu-text-primary);font-family:var(--font-sans);line-height:1.65}
+.wrap{max-width:1000px;margin:0 auto;padding:0 32px}
+section{padding:52px 0;border-top:0.5px solid var(--aayu-border)}
+.kicker{font-size:12px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--aayu-teal-600);margin:0 0 10px}
+h2.sec{font-size:24px;font-weight:500;margin:0 0 8px;letter-spacing:-0.01em}
+.lead{font-size:15px;color:var(--aayu-text-secondary);max-width:640px;margin:0 0 24px}
+table{width:100%;border-collapse:collapse;font-size:14px;background:var(--aayu-surface-card);border:0.5px solid var(--aayu-border);border-radius:var(--radius-md);overflow:hidden}
+th{text-align:left;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:var(--aayu-text-muted);padding:12px 16px;background:var(--aayu-surface-muted);border-bottom:0.5px solid var(--aayu-border)}
+td{padding:12px 16px;border-bottom:0.5px solid var(--aayu-border);color:var(--aayu-text-secondary);vertical-align:top}
+td b{color:var(--aayu-text-primary);font-weight:500}
+tr:last-child td{border-bottom:none}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--aayu-surface-muted);border-radius:5px;padding:1px 6px;color:var(--aayu-ink-700)}
+pre{background:var(--aayu-ink-900);color:#D7E6F5;border-radius:var(--radius-md);padding:18px 20px;overflow:auto;font-size:12.5px;line-height:1.7;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre .c{color:#7FA6C9}
+.done{color:var(--aayu-success);font-weight:500}
+.pending{color:var(--aayu-attention);font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.flow{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.fstep{flex:1;min-width:130px;background:var(--aayu-surface-card);border:0.5px solid var(--aayu-border);border-radius:var(--radius-md);padding:14px}
+.fnum{width:22px;height:22px;border-radius:50%;background:var(--aayu-teal-600);color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+a{color:var(--aayu-teal-600)}a:hover{color:var(--aayu-teal-400)}
+/* redline */
+.rl{position:relative;width:320px;background:var(--aayu-surface-card);border:0.5px solid var(--aayu-border);border-radius:12px;padding:16px;font-size:14px}
+.rl .lbl{position:absolute;font-size:11px;color:var(--aayu-teal-600);background:var(--aayu-teal-50);border-radius:4px;padding:1px 5px;font-weight:500}
+</style>
+</head>
+<body>
+<div style="background:var(--aayu-teal-600);color:#fff">
+  <div class="wrap" style="padding:56px 32px">
+    <div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:var(--aayu-teal-100);margin-bottom:14px">UX Blueprint · Dev handoff</div>
+    <div style="font-size:40px;font-weight:500;letter-spacing:-0.02em">Everything engineering needs</div>
+    <div style="font-size:18px;color:var(--aayu-teal-50);margin-top:10px;max-width:640px">Locked decisions, breakpoints, tokens, redlines, and the full component + state inventory — one reference to build against.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<section style="border-top:none">
+  <div class="kicker">01 · Resolved</div>
+  <h2 class="sec">Locked product decisions</h2>
+  <p class="lead">These were open questions. All are now resolved — build against them; do not re-litigate.</p>
+  <table>
+    <tr><th>Decision</th><th>Locked answer</th><th>Status</th></tr>
+    <tr><td><b>Main nav model</b></td><td>Home · Health · <b>Claim (elevated center)</b> · Schemes · Profile. Claim launches the full-screen upload task.</td><td class="done">Resolved</td></tr>
+    <tr><td><b>"Health" vs "Vault"</b></td><td>Use <b>Health</b> in all user-facing copy. "Vault" is internal-only.</td><td class="done">Resolved</td></tr>
+    <tr><td><b>Appeal letter</b></td><td><b>Editable preview + download PDF.</b> User can revise inline before final download.</td><td class="done">Resolved</td></tr>
+    <tr><td><b>Scheme match</b></td><td><b>3–5 high-confidence schemes only.</b> One strong match + honest "still checking"; never flood.</td><td class="done">Resolved</td></tr>
+  </table>
+</section>
+
+<section>
+  <div class="kicker">02 · Responsive</div>
+  <h2 class="sec">Breakpoints &amp; layout rules</h2>
+  <table>
+    <tr><th>Tier</th><th>Range</th><th>Chrome</th><th>Content</th></tr>
+    <tr><td><b>Mobile</b></td><td>360–767px</td><td>Bottom tab bar, Claim elevated center</td><td>Single column · 16px side padding · 44px tap targets</td></tr>
+    <tr><td><b>Tablet</b></td><td>768–1023px</td><td>Left sidebar appears</td><td>Single centered column · max 640–720px</td></tr>
+    <tr><td><b>Desktop</b></td><td>1024px+</td><td>Left sidebar</td><td>Centered max 720px · two-column for Home &amp; Health list+detail</td></tr>
+  </table>
+  <p class="lead" style="margin-top:16px">Mobile-first: desktop is the same components with more breathing room, never a different UI. Never full-bleed forms. Support OS text scaling to 200%.</p>
+</section>
+
+<section>
+  <div class="kicker">03 · Tokens</div>
+  <h2 class="sec">Design tokens (CSS variables)</h2>
+  <p class="lead">Single source of truth is <code>styles.css</code> → <code>tokens/*.css</code>. Link that one file; every value below is a live custom property. Generate Tailwind / Style Dictionary from these if the team wants.</p>
+  <div class="grid2">
+    <pre><span class="c">/* color */</span>
+--aayu-teal-600: #0F6E56;  <span class="c">/* primary */</span>
+--aayu-teal-400: #1D9E75;  <span class="c">/* action/hover */</span>
+--aayu-ink-900:  #042C53;
+--aayu-surface-page: #F7F6F2;
+--aayu-surface-card: #FFFFFF;
+--aayu-border:       #E4E2DA;
+--aayu-text-primary: #1F2421;
+--aayu-success:   #0F6E56;
+--aayu-attention: #BA7517;  <span class="c">/* review */</span>
+--aayu-danger:    #A32D2D;  <span class="c">/* errors */</span></pre>
+    <pre><span class="c">/* type · Inter · 400 & 500 only */</span>
+display: 30/1.2 · 500
+h1:      22/1.3 · 500
+h2:      18/1.4 · 500
+body:    16/1.7 · 400
+caption: 13/1.5 · 400
+
+<span class="c">/* spacing (8px base) */</span>
+4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 48
+
+<span class="c">/* radius */</span>
+sm 8 · md 12 · lg 16 · pill 999
+
+<span class="c">/* elevation */</span>
+1: 0 1px 2px rgba(4,44,44,.06)
+2: 0 8px 24px rgba(4,44,44,.10)</pre>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">04 · Redlines</div>
+  <h2 class="sec">Spacing &amp; sizing</h2>
+  <p class="lead">All spacing is on the 8px base. A standard card: 16px padding, 12px radius, 0.5px hairline border, no shadow. Controls are 44px tall.</p>
+  <div style="display:flex;gap:56px;flex-wrap:wrap;align-items:flex-start;padding:24px 40px">
+    <div class="rl">
+      <span class="lbl" style="top:-9px;left:16px">↕ 16 pad</span>
+      <span class="lbl" style="left:-30px;top:44px">16</span>
+      <div style="font-size:16px;font-weight:500;margin-bottom:6px">Card title</div>
+      <div style="font-size:14px;color:var(--aayu-text-secondary)">Body copy sits 6px below the title. The card border is 0.5px; radius 12px.</div>
+      <span class="lbl" style="bottom:-9px;right:16px">r:12</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--aayu-text-secondary)">
+      <div><b style="color:var(--aayu-text-primary)">Tap targets</b> — min 44×44px, always.</div>
+      <div><b style="color:var(--aayu-text-primary)">Side padding</b> — 16px on mobile, content max 720px on desktop.</div>
+      <div><b style="color:var(--aayu-text-primary)">Section rhythm</b> — 24 / 32 / 48px between blocks.</div>
+      <div><b style="color:var(--aayu-text-primary)">Internal gaps</b> — 8 / 12 / 16px within components.</div>
+      <div><b style="color:var(--aayu-text-primary)">Focus ring</b> — <code>0 0 0 3px rgba(15,110,86,.25)</code>.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">05 · Inventory</div>
+  <h2 class="sec">Components &amp; their states</h2>
+  <table>
+    <tr><th>Component</th><th>Variants / states</th></tr>
+    <tr><td><b>Button</b></td><td>primary · secondary · ghost · loading · disabled · press(scale .98) · focus ring</td></tr>
+    <tr><td><b>Select</b></td><td>placeholder · selected · focus · disabled</td></tr>
+    <tr><td><b>Input</b></td><td>default · focus · error(on blur) · with label</td></tr>
+    <tr><td><b>PatientSelector</b></td><td>default · selected · with avatar initials</td></tr>
+    <tr><td><b>UploadDropzone</b></td><td>empty · file reading · done · unreadable-retry</td></tr>
+    <tr><td><b>StatusChip</b></td><td>success · attention · neutral (icon + text always)</td></tr>
+    <tr><td><b>TrustBadge</b></td><td>shield-check · lock variants</td></tr>
+    <tr><td><b>MetricCard</b></td><td>ink (counts) · teal (money)</td></tr>
+    <tr><td><b>AssessmentCard</b></td><td>icon + title + plain-language body</td></tr>
+    <tr><td><b>LetterCard</b></td><td>preview · <b>editable</b> (inline textarea) · download</td></tr>
+    <tr><td><b>ListRow</b></td><td>icon tile + title + subtitle + chevron · bordered</td></tr>
+    <tr><td><b>BottomSheet</b></td><td>scrim · title · body · primary action (normal-flow, never fixed)</td></tr>
+  </table>
+  <p class="lead" style="margin-top:16px">Screen-level states (empty / loading / error / success) for every key screen are specified in <a href="states.html">states.html</a>.</p>
+</section>
+
+<section>
+  <div class="kicker">06 · Journey</div>
+  <h2 class="sec">Final user journey</h2>
+  <div class="flow">
+    <div class="fstep"><div class="fnum">1</div><b>Login / Sign up</b><div style="font-size:13px;color:var(--aayu-text-secondary)">Email + password</div></div>
+    <div class="fstep"><div class="fnum">2</div><b>Home</b><div style="font-size:13px;color:var(--aayu-text-secondary)">Tap "Fight a claim"</div></div>
+    <div class="fstep"><div class="fnum">3</div><b>Consent</b><div style="font-size:13px;color:var(--aayu-text-secondary)">One-time, explicit</div></div>
+    <div class="fstep"><div class="fnum">4</div><b>Upload</b><div style="font-size:13px;color:var(--aayu-text-secondary)">Rejection · policy · bills</div></div>
+    <div class="fstep"><div class="fnum">5</div><b>Result</b><div style="font-size:13px;color:var(--aayu-text-secondary)">Assessment + editable appeal</div></div>
+    <div class="fstep" style="background:var(--aayu-success-bg);border-color:var(--aayu-teal-100)"><div class="fnum">6</div><b>Auto-seeded</b><div style="font-size:13px;color:var(--aayu-teal-800)">Health + Scheme match</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">07 · Checklist</div>
+  <h2 class="sec">Handoff package status</h2>
+  <table>
+    <tr><th>Item</th><th>Status</th></tr>
+    <tr><td>Wireframes / hi-fi screens — mobile, tablet, desktop</td><td class="done">Included (blueprint.html)</td></tr>
+    <tr><td>Empty / loading / error / success states</td><td class="done">Included (states.html)</td></tr>
+    <tr><td>Design tokens / CSS variables</td><td class="done">Included (styles.css + tokens/)</td></tr>
+    <tr><td>Component library + props (.d.ts) + usage (.prompt.md)</td><td class="done">Included (components/)</td></tr>
+    <tr><td>Responsive breakpoints &amp; layout rules</td><td class="done">Included (this doc §02)</td></tr>
+    <tr><td>Spacing / sizing redlines</td><td class="done">Included (this doc §04)</td></tr>
+    <tr><td>User journey flow</td><td class="done">Included (this doc §06)</td></tr>
+    <tr><td>Open decisions resolved</td><td class="done">Included (this doc §01)</td></tr>
+    <tr><td>Final wordmark / logo file</td><td class="pending">Pending — placeholder wordmark in use</td></tr>
+    <tr><td>Font license decision (Inter vs Geist)</td><td class="done">Resolved — Inter</td></tr>
+    <tr><td>Icon set confirmation</td><td class="done">Resolved — Lucide (single library, used app-wide)</td></tr>
+    <tr><td>Accessibility audit (contrast, keyboard, reduced-motion)</td><td class="pending">Pending — rules documented, formal pass TBD</td></tr>
+  </table>
+</section>
+
+<section>
+  <div class="kicker">08 · Using it</div>
+  <h2 class="sec">How engineering consumes this</h2>
+  <pre><span class="c">&lt;!-- link the one stylesheet: all tokens + fonts --&gt;</span>
+&lt;link rel="stylesheet" href="styles.css"&gt;
+
+<span class="c">// components ship in the compiled bundle</span>
+&lt;script src="_ds_bundle.js"&gt;&lt;/script&gt;
+const { Button, LetterCard, StatusChip } = window.AayuDesignSystem_84693d;</pre>
+  <p class="lead" style="margin-top:16px">Component source lives in <code>components/&lt;group&gt;/</code> with a <code>.d.ts</code> props contract and a <code>.prompt.md</code> usage note each. Screens are in <code>ui_kits/aayu-app/</code>. The portable <a href="../../SKILL.md">SKILL.md</a> lets an agent load this system directly. Built from the Aayu <a href="https://github.com/vynho-dev/Aayu">PRD &amp; Design System spec</a>.</p>
+</section>
+
+</div>
+</body>
+</html>

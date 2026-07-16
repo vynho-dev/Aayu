@@ -1,0 +1,334 @@
+<!-- @dsCard group="Blueprint" viewport="1240x900" name="UX Blueprint" subtitle="Full product blueprint — IA, nav, Home, screens, flows, specs" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aayu — Product UX Blueprint</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+body{margin:0;background:var(--aayu-surface-page);color:var(--aayu-text-primary);font-family:var(--font-sans);line-height:1.6}
+.wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+section{padding:64px 0;border-top:0.5px solid var(--aayu-border)}
+.kicker{font-size:12px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--aayu-teal-600);margin:0 0 10px}
+h2.sec{font-size:28px;font-weight:500;margin:0 0 8px;color:var(--aayu-text-primary);letter-spacing:-0.01em}
+.lead{font-size:16px;color:var(--aayu-text-secondary);max-width:640px;margin:0 0 32px}
+.tray{background:var(--aayu-surface-muted);border:0.5px solid var(--aayu-border);border-radius:var(--radius-lg);padding:32px}
+.frame-phone{width:390px;height:780px;background:#fff;border-radius:32px;border:1px solid var(--aayu-border-strong);box-shadow:var(--elevation-2);overflow:hidden;flex-shrink:0}
+.scale-wrap{overflow:hidden;border-radius:16px;box-shadow:var(--elevation-2);flex-shrink:0}
+.frame-flat{background:#fff;overflow:hidden}
+.frame-cap{font-size:13px;color:var(--aayu-text-muted);margin-top:12px;text-align:center}
+.anno{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--aayu-text-secondary);line-height:1.5}
+.anno .dot{width:22px;height:22px;border-radius:50%;background:var(--aayu-success-bg);color:var(--aayu-teal-700);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;margin-top:1px}
+.anno b{color:var(--aayu-text-primary);font-weight:500}
+.card{background:var(--aayu-surface-card);border:0.5px solid var(--aayu-border);border-radius:var(--radius-md);padding:20px}
+.grid{display:grid;gap:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--aayu-surface-card);border:0.5px solid var(--aayu-border);border-radius:var(--radius-pill);padding:6px 12px;font-size:13px;color:var(--aayu-text-secondary)}
+a{color:var(--aayu-teal-600)}a:hover{color:var(--aayu-teal-400)}
+.node{background:var(--aayu-surface-card);border:0.5px solid var(--aayu-border);border-radius:var(--radius-md);padding:12px 16px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;color:var(--aayu-text-primary)}
+.node.hub{background:var(--aayu-teal-600);color:#fff;border-color:var(--aayu-teal-600)}
+.node.hub i{color:#fff}
+.node i{width:18px;height:18px;color:var(--aayu-teal-600)}
+.connector{width:2px;background:var(--aayu-border-strong)}
+.flowstep{flex:1;min-width:150px;background:var(--aayu-surface-card);border:0.5px solid var(--aayu-border);border-radius:var(--radius-md);padding:16px}
+.flownum{width:24px;height:24px;border-radius:50%;background:var(--aayu-teal-600);color:#fff;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.swatch{height:56px;border-radius:8px;display:flex;align-items:flex-end;padding:6px;font-size:11px}
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div style="background:var(--aayu-teal-600);color:#fff">
+  <div class="wrap" style="padding-top:72px;padding-bottom:72px">
+    <div style="font-size:14px;letter-spacing:0.08em;text-transform:uppercase;color:var(--aayu-teal-100);margin-bottom:20px">Product UX Blueprint</div>
+    <div style="font-size:56px;font-weight:500;letter-spacing:-0.02em;line-height:1.05">Aayu</div>
+    <div style="font-size:22px;color:var(--aayu-teal-50);margin-top:12px;max-width:620px;line-height:1.4">Your family's health, working for you — a hi-fi blueprint of how the product should look and work before development starts.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px">
+      <span class="pill" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.25);color:#fff">MVP · v1.0</span>
+      <span class="pill" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.25);color:#fff">Mobile · Tablet · Desktop</span>
+      <span class="pill" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.25);color:#fff">Login · Home · Health · Claim · Schemes · Profile</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- PRINCIPLES -->
+<section style="border-top:none">
+  <div class="kicker">01 · Foundation</div>
+  <h2 class="sec">Five principles that drive every screen</h2>
+  <p class="lead">Aayu is used at the worst moment of a family's life — a hospitalization and a denied claim. Every decision serves clarity and confidence, never delight for its own sake.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Hope before mechanics</div><div style="font-size:14px;color:var(--aayu-text-secondary)">Lead with the result — money recoverable — then the detail.</div></div>
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Trust over decoration</div><div style="font-size:14px;color:var(--aayu-text-secondary)">Visible encryption, "pay only if we win," human review. No dark patterns.</div></div>
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Clarity over noise</div><div style="font-size:14px;color:var(--aayu-text-secondary)">One primary action per screen. Generous whitespace. No gradients.</div></div>
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Calm, not clinical-cold</div><div style="font-size:14px;color:var(--aayu-text-secondary)">Warm neutrals and one trustworthy teal — human, not sterile.</div></div>
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Effortless on a cheap phone</div><div style="font-size:14px;color:var(--aayu-text-secondary)">Mobile-first, low-end Android, minimal typing, large tap targets.</div></div>
+  </div>
+</section>
+
+<!-- IA MAP -->
+<section>
+  <div class="kicker">02 · Information architecture</div>
+  <h2 class="sec">How the product is organized</h2>
+  <p class="lead">A single hub (Home) ties five destinations together. The claim flow is a focused, full-screen task launched from anywhere — it takes over the screen so nothing competes with it.</p>
+  <div class="tray">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+      <div class="node"><i data-lucide="log-in"></i> Login / Sign up</div>
+      <div class="connector" style="height:24px"></div>
+      <div class="node hub"><i data-lucide="house"></i> Home — dashboard hub</div>
+      <div class="connector" style="height:24px"></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
+        <div class="node"><i data-lucide="heart-pulse"></i> Health</div>
+        <div class="node" style="background:var(--aayu-teal-600);color:#fff;border-color:var(--aayu-teal-600)"><i data-lucide="file-plus-2" style="color:#fff"></i> Claim / Upload</div>
+        <div class="node"><i data-lucide="landmark"></i> Schemes</div>
+        <div class="node"><i data-lucide="circle-user"></i> Profile</div>
+      </div>
+      <div style="font-size:13px;color:var(--aayu-text-muted);margin-top:20px;text-align:center;max-width:520px">Claim / Upload is a full-screen task (Upload → Processing → Result). Its results seed Health and Schemes automatically — one document, three jobs.</div>
+    </div>
+  </div>
+</section>
+
+<!-- NAV STRUCTURE -->
+<section>
+  <div class="kicker">03 · Navigation</div>
+  <h2 class="sec">Tab bar on mobile, sidebar on desktop</h2>
+  <p class="lead">Same five destinations, two chrome patterns. Claim sits center as an elevated primary action — the one thing we always want within reach. The active destination is marked with color, never color alone.</p>
+  <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start">
+    <div>
+      <div id="nav-mobile" style="width:390px;border:0.5px solid var(--aayu-border);border-radius:var(--radius-md);overflow:hidden"></div>
+      <div class="frame-cap">Mobile — bottom tab bar (Claim elevated center)</div>
+    </div>
+    <div style="flex:1;min-width:280px;display:flex;flex-direction:column;gap:16px">
+      <div class="anno"><span class="dot">1</span><div><b>Home, Health, Schemes, Profile</b> are peer destinations — tap to switch, state is preserved.</div></div>
+      <div class="anno"><span class="dot">2</span><div><b>Claim</b> is the elevated center action. It launches the full-screen upload task, then returns you here.</div></div>
+      <div class="anno"><span class="dot">3</span><div>On <b>tablet & desktop</b> the tab bar becomes a left sidebar with the same order, plus the account chip pinned to the bottom.</div></div>
+      <div class="anno"><span class="dot">4</span><div>Tap targets are <b>≥ 44px</b>; labels stay in sentence case; icons pair with text at all sizes.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOME -->
+<section>
+  <div class="kicker">04 · Entry — login &amp; consent</div>
+  <h2 class="sec">Getting in, and giving consent</h2>
+  <p class="lead">Auth is email + password via a managed provider. Consent is an explicit, readable screen before the first upload — plain-language, with the continue button disabled until the box is ticked.</p>
+  <div class="tray" style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center">
+    <div><div id="e-login" class="frame-phone"></div><div class="frame-cap"><b>Login / Sign up</b> — one toggle between the two</div></div>
+    <div><div id="e-consent" class="frame-phone"></div><div class="frame-cap"><b>Consent</b> — what we read, why, how it's protected</div></div>
+  </div>
+</section>
+
+<!-- HOME -->
+<section>
+  <div class="kicker">05 · Home — the centerpiece</div>
+  <h2 class="sec">What a returning caregiver sees first</h2>
+  <p class="lead">Home answers one question instantly: "where does my parent's claim stand?" The active claim and its recoverable amount lead; the primary CTA to fight a new claim sits right below; quick access and recent activity fill in the rest.</p>
+  <div class="tray" style="display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start;justify-content:center">
+    <div>
+      <div id="home-mobile" class="frame-phone"></div>
+      <div class="frame-cap">Mobile · 390px</div>
+    </div>
+    <div style="max-width:300px;display:flex;flex-direction:column;gap:16px;padding-top:8px">
+      <div class="anno"><span class="dot">A</span><div><b>Patient switcher</b> top-right — every screen is scoped to the selected patient (Appa).</div></div>
+      <div class="anno"><span class="dot">B</span><div><b>Active claim card</b> leads with ₹18,400 recoverable and a status chip — hope before mechanics.</div></div>
+      <div class="anno"><span class="dot">C</span><div><b>One primary action:</b> "Fight a new claim" — the dashed teal CTA that starts the upload task.</div></div>
+      <div class="anno"><span class="dot">D</span><div><b>Quick access tiles</b> summarize Health and Schemes as glanceable metrics.</div></div>
+      <div class="anno"><span class="dot">E</span><div><b>Recent activity</b> shows the "one document, three jobs" payoff in plain language.</div></div>
+      <div class="anno"><span class="dot">F</span><div><b>Persistent trust footer</b> — encryption + "pay only if we win," never hidden.</div></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:32px;flex-wrap:wrap;margin-top:32px;justify-content:center">
+    <div>
+      <div class="scale-wrap" style="width:504px;height:660px"><div id="home-tablet" class="frame-flat" style="width:720px;height:943px;transform:scale(0.7);transform-origin:top left"></div></div>
+      <div class="frame-cap">Tablet · 720px — sidebar appears, single centered column</div>
+    </div>
+    <div>
+      <div class="scale-wrap" style="width:720px;height:432px"><div id="home-desktop" class="frame-flat" style="width:1200px;height:720px;transform:scale(0.6);transform-origin:top left"></div></div>
+      <div class="frame-cap">Desktop · 1200px — sidebar + two-column content, max 720px reading width</div>
+    </div>
+  </div>
+</section>
+
+<!-- DESTINATIONS -->
+<section>
+  <div class="kicker">06 · The destinations</div>
+  <h2 class="sec">Health, Schemes & Profile</h2>
+  <p class="lead">Each destination is content-first and quiet. Health is auto-built from uploads; Schemes surfaces what the family is owed; Profile holds the account, the patients, and the consent controls.</p>
+  <div class="tray" style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center">
+    <div><div id="d-health" class="frame-phone"></div><div class="frame-cap"><b>Health</b> — conditions, meds, allergies, timeline</div></div>
+    <div><div id="d-schemes" class="frame-phone"></div><div class="frame-cap"><b>Schemes</b> — matched entitlement + honest "still checking"</div></div>
+    <div><div id="d-profile" class="frame-phone"></div><div class="frame-cap"><b>Profile</b> — account, patients, security & consent</div></div>
+  </div>
+  <div style="font-size:13px;color:var(--aayu-text-muted);margin:28px 0 16px;text-align:center">Same screens on tablet &amp; desktop — sidebar chrome, single centered column</div>
+  <div style="display:flex;gap:28px;flex-wrap:wrap;justify-content:center">
+    <div><div class="scale-wrap" style="width:456px;height:432px"><div id="d-health-desktop" class="frame-flat" style="width:1140px;height:1080px;transform:scale(0.4);transform-origin:top left"></div></div><div class="frame-cap">Health · desktop</div></div>
+    <div><div class="scale-wrap" style="width:456px;height:432px"><div id="d-schemes-desktop" class="frame-flat" style="width:1140px;height:1080px;transform:scale(0.4);transform-origin:top left"></div></div><div class="frame-cap">Schemes · desktop</div></div>
+    <div><div class="scale-wrap" style="width:360px;height:490px"><div id="d-profile-tablet" class="frame-flat" style="width:720px;height:980px;transform:scale(0.5);transform-origin:top left"></div></div><div class="frame-cap">Profile · tablet</div></div>
+  </div>
+</section>
+
+<!-- CLAIM FLOW -->
+<section>
+  <div class="kicker">07 · The hero task</div>
+  <h2 class="sec">Claim / Upload — a focused full-screen flow</h2>
+  <p class="lead">Launched from the center tab, the claim task takes over the screen: add documents, watch honest step-by-step processing, then land on the result — the assessment, the appeal letter, and the recoverable amount.</p>
+  <div class="tray" style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center">
+    <div><div id="c-upload" class="frame-phone"></div><div class="frame-cap">1 · Upload documents</div></div>
+    <div><div id="c-processing" class="frame-phone"></div><div class="frame-cap">2 · Processing (names each step)</div></div>
+    <div><div id="c-result" class="frame-phone"></div><div class="frame-cap">3 · Claim result (₹ counts up)</div></div>
+  </div>
+</section>
+
+<!-- USER FLOW -->
+<section>
+  <div class="kicker">08 · Core user flow</div>
+  <h2 class="sec">From Home to money recovered</h2>
+  <p class="lead">The end-to-end hero journey. Every claim quietly seeds the Health record and a scheme match — so the payoff compounds with no extra data entry.</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:stretch">
+    <div class="flowstep"><div class="flownum">1</div><div style="font-weight:500;font-size:15px">Home</div><div style="font-size:13px;color:var(--aayu-text-secondary)">Tap "Fight a new claim"</div></div>
+    <div class="flowstep"><div class="flownum">2</div><div style="font-weight:500;font-size:15px">Consent</div><div style="font-size:13px;color:var(--aayu-text-secondary)">One-time, plain-language</div></div>
+    <div class="flowstep"><div class="flownum">3</div><div style="font-weight:500;font-size:15px">Upload</div><div style="font-size:13px;color:var(--aayu-text-secondary)">Rejection, policy, bills</div></div>
+    <div class="flowstep"><div class="flownum">4</div><div style="font-weight:500;font-size:15px">Result</div><div style="font-size:13px;color:var(--aayu-text-secondary)">Assessment + appeal PDF</div></div>
+    <div class="flowstep" style="background:var(--aayu-success-bg);border-color:var(--aayu-teal-100)"><div class="flownum">5</div><div style="font-weight:500;font-size:15px">Auto-seeded</div><div style="font-size:13px;color:var(--aayu-teal-800)">Health + Scheme match</div></div>
+  </div>
+</section>
+
+<!-- COMPONENTS & PATTERNS -->
+<section>
+  <div class="kicker">09 · Building blocks</div>
+  <h2 class="sec">Components, CTAs & patterns</h2>
+  <p class="lead">Every screen above is composed from this small, reusable set. Reference the live Components cards in the Design System tab for full states.</p>
+  <div id="pattern-strip" style="background:var(--aayu-surface-card);border:0.5px solid var(--aayu-border);border-radius:var(--radius-md);padding:28px"></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:20px">
+    <div class="card"><div style="font-size:14px;font-weight:500;margin-bottom:6px">Buttons & CTAs</div><div style="font-size:13px;color:var(--aayu-text-secondary)">One primary (teal) per screen. Secondary = hairline border. Ghost = text only. 44px tall. Press scales to 0.98.</div></div>
+    <div class="card"><div style="font-size:14px;font-weight:500;margin-bottom:6px">Cards</div><div style="font-size:13px;color:var(--aayu-text-secondary)">White surface, 0.5px hairline border, 12px radius, no shadow. Colored tint only for positive/attention emphasis.</div></div>
+    <div class="card"><div style="font-size:14px;font-weight:500;margin-bottom:6px">Spacing & hierarchy</div><div style="font-size:13px;color:var(--aayu-text-secondary)">8px base. 16px gutters. Section rhythm in 24/32/48. Display size reserved for the outcome number.</div></div>
+    <div class="card"><div style="font-size:14px;font-weight:500;margin-bottom:6px">Status & trust</div><div style="font-size:13px;color:var(--aayu-text-secondary)">Chips pair color + icon + text. Trust badges persist on claim and result. Amber = review, never alarm.</div></div>
+  </div>
+</section>
+
+<!-- FOUNDATIONS QUICK REF -->
+<section>
+  <div class="kicker">10 · Foundations at a glance</div>
+  <h2 class="sec">Color, type & radii</h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:32px">
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--aayu-text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px">Color</div>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="swatch" style="background:#0F6E56;color:#fff">Teal 600</div>
+        <div class="swatch" style="background:#1D9E75;color:#fff">Teal 400</div>
+        <div class="swatch" style="background:#042C53;color:#fff">Ink 900</div>
+        <div class="swatch" style="background:#F7F6F2;color:#1F2421;border:0.5px solid var(--aayu-border)">Page</div>
+        <div class="swatch" style="background:#FAEEDA;color:#BA7517">Attention</div>
+        <div class="swatch" style="background:#FCEBEB;color:#A32D2D">Danger</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:500;color:var(--aayu-text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px">Type — Inter, weights 400 / 500 only</div>
+      <div style="font-size:30px;font-weight:500;line-height:1.2">Display ₹18,400</div>
+      <div style="font-size:22px;font-weight:500;margin-top:4px">H1 Screen title</div>
+      <div style="font-size:16px;font-weight:400;margin-top:4px;color:var(--aayu-text-secondary)">Body — sentence case, contractions, plain.</div>
+      <div style="font-size:13px;font-weight:400;margin-top:4px;color:var(--aayu-text-muted)">Caption — clause refs, metadata</div>
+    </div>
+  </div>
+</section>
+
+<!-- INSPIRATION -->
+<section>
+  <div class="kicker">11 · Inspiration</div>
+  <h2 class="sec">Warmth + evidence</h2>
+  <p class="lead">Aayu's signature sits at the intersection of four references — inform, don't copy. The blend is deliberate: fintech calm keeps it trustworthy, health softness keeps it human, challenger honesty keeps it plain, public-service clarity keeps it usable on any phone.</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Premium fintech calm</div><div style="font-size:13px;color:var(--aayu-text-secondary)">Restraint, whitespace, confidence with money. Flat surfaces, hairline borders.</div></div>
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Modern health apps</div><div style="font-size:13px;color:var(--aayu-text-secondary)">Reassuring, soft, warm neutrals — a hospital that feels human, not sterile.</div></div>
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Insurance challengers</div><div style="font-size:13px;color:var(--aayu-text-secondary)">Plain language, honesty, "on your side" — never corporate legalese.</div></div>
+    <div class="card"><div style="font-size:15px;font-weight:500;margin-bottom:6px">Public-service clarity</div><div style="font-size:13px;color:var(--aayu-text-secondary)">High contrast, big targets, works on low-end Android at 200% text scale.</div></div>
+  </div>
+  <div style="margin-top:32px;font-size:13px;color:var(--aayu-text-muted);border-top:0.5px solid var(--aayu-border);padding-top:24px">Built from the Aayu <a href="https://github.com/vynho-dev/Aayu">PRD & Design System spec</a>. Fonts: Inter (substitute per spec recommendation). Icons: Lucide (substitute — no icon assets in source). No logo file exists yet; wordmark shown in type. &nbsp;·&nbsp; See also: <a href="states.html">Screen states</a> · <a href="handoff.html">Dev handoff spec</a>.</div>
+</section>
+
+</div>
+
+<!-- screen sources -->
+<script type="text/babel" src="AppChrome.jsx"></script>
+<script type="text/babel" src="HomeScreen.jsx"></script>
+<script type="text/babel" src="HealthScreen.jsx"></script>
+<script type="text/babel" src="SchemesScreen.jsx"></script>
+<script type="text/babel" src="ProfileScreen.jsx"></script>
+<script type="text/babel" src="LoginScreen.jsx"></script>
+<script type="text/babel" src="ConsentScreenFull.jsx"></script>
+<script type="text/babel" src="UploadScreen.jsx"></script>
+<script type="text/babel" src="ProcessingScreen.jsx"></script>
+<script type="text/babel" src="ClaimResultScreen.jsx"></script>
+<script type="text/babel">
+const noop = () => {};
+function renderApp(mode, screen){
+  const wide = mode !== 'mobile';
+  const noChrome = ['upload','processing','result','login','consent'].includes(screen);
+  let content;
+  if(screen==='home') content = <window.HomeScreen wide={wide} onNav={noop} onReview={noop} onAsk={noop} />;
+  else if(screen==='health') content = <window.HealthScreen wide={wide} />;
+  else if(screen==='schemes') content = <window.SchemesScreen wide={wide} />;
+  else if(screen==='profile') content = <window.ProfileScreen wide={wide} />;
+  else if(screen==='login') content = <window.LoginScreen wide={false} onAuth={noop} />;
+  else if(screen==='consent') content = <window.ConsentScreenFull wide={false} onAgree={noop} onClose={noop} />;
+  else if(screen==='upload') content = <window.UploadScreen onNext={noop} />;
+  else if(screen==='processing') content = <window.ProcessingScreen />;
+  else if(screen==='result') content = <window.ClaimResultScreen onOpenQA={noop} onOpenVault={noop} />;
+  if(noChrome) return <div style={{height:'100%',overflowY:'auto',background:'var(--aayu-surface-page)'}}>{content}</div>;
+  return <window.AppChrome active={screen} onNav={noop} wide={wide}>{content}</window.AppChrome>;
+}
+function NavOnlyMobile(){
+  const [active,setActive]=React.useState('home');
+  return <window.AppChrome active={active} onNav={setActive} wide={false}><div style={{padding:24,color:'var(--aayu-text-muted)',fontSize:14}}>Tap the tabs — the active destination highlights in teal.</div></window.AppChrome>;
+}
+function PatternStrip(){
+  const { Button, StatusChip, TrustBadge, MetricCard } = window.AayuDesignSystem_84693d;
+  React.useEffect(()=>{ if(window.lucide) window.lucide.createIcons(); });
+  return (
+    <div style={{display:'flex',gap:28,flexWrap:'wrap',alignItems:'center'}}>
+      <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+        <Button variant="primary">Review appeal</Button>
+        <Button variant="secondary">Cancel</Button>
+        <Button variant="ghost">Skip</Button>
+      </div>
+      <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+        <StatusChip tone="success">Approved</StatusChip>
+        <StatusChip tone="attention">Needs review</StatusChip>
+        <StatusChip tone="neutral">Draft</StatusChip>
+      </div>
+      <TrustBadge icon="shield-check">Encrypted</TrustBadge>
+      <MetricCard label="Recoverable" value="₹18,400" tone="teal" />
+    </div>
+  );
+}
+const mounts = [
+  ['nav-mobile', <NavOnlyMobile/>],
+  ['e-login', renderApp('mobile','login')],
+  ['e-consent', renderApp('mobile','consent')],
+  ['home-mobile', renderApp('mobile','home')],
+  ['home-tablet', renderApp('tablet','home')],
+  ['home-desktop', renderApp('desktop','home')],
+  ['d-health', renderApp('mobile','health')],
+  ['d-schemes', renderApp('mobile','schemes')],
+  ['d-profile', renderApp('mobile','profile')],
+  ['d-health-desktop', renderApp('desktop','health')],
+  ['d-schemes-desktop', renderApp('desktop','schemes')],
+  ['d-profile-tablet', renderApp('tablet','profile')],
+  ['c-upload', renderApp('mobile','upload')],
+  ['c-processing', renderApp('mobile','processing')],
+  ['c-result', renderApp('mobile','result')],
+  ['pattern-strip', <PatternStrip/>],
+];
+mounts.forEach(([id,node]) => { const el=document.getElementById(id); if(el) ReactDOM.createRoot(el).render(node); });
+function icons(){ if(window.lucide) window.lucide.createIcons(); }
+setTimeout(icons, 80); setTimeout(icons, 400); setTimeout(icons, 1200);
+</script>
+</body>
+</html>

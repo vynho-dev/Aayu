@@ -1,0 +1,124 @@
+<!-- @dsCard group="Blueprint" viewport="1240x900" name="Screen states" subtitle="Empty · Loading · Error · Success for every key screen" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aayu — Screen States</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+body{margin:0;background:var(--aayu-surface-page);color:var(--aayu-text-primary);font-family:var(--font-sans);line-height:1.6}
+.wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+section{padding:56px 0;border-top:0.5px solid var(--aayu-border)}
+.kicker{font-size:12px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--aayu-teal-600);margin:0 0 10px}
+h2.sec{font-size:26px;font-weight:500;margin:0 0 8px;letter-spacing:-0.01em}
+.lead{font-size:16px;color:var(--aayu-text-secondary);max-width:640px;margin:0 0 28px}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.cell{display:flex;flex-direction:column;gap:10px}
+.frame{width:300px;height:600px;background:#fff;border-radius:26px;border:1px solid var(--aayu-border-strong);box-shadow:var(--elevation-1);overflow:hidden}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:4px 10px;border-radius:var(--radius-pill);width:fit-content}
+.t-empty{background:var(--aayu-surface-muted);color:var(--aayu-text-secondary)}
+.t-loading{background:var(--aayu-teal-50);color:var(--aayu-teal-800)}
+.t-error{background:var(--aayu-danger-bg);color:var(--aayu-danger)}
+.t-success{background:var(--aayu-success-bg);color:var(--aayu-teal-700)}
+.note{font-size:13px;color:var(--aayu-text-muted);max-width:280px}
+</style>
+</head>
+<body>
+<div style="background:var(--aayu-teal-600);color:#fff">
+  <div class="wrap" style="padding:56px 32px">
+    <div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:var(--aayu-teal-100);margin-bottom:14px">UX Blueprint · Screen states</div>
+    <div style="font-size:40px;font-weight:500;letter-spacing:-0.02em">Every screen, every situation</div>
+    <div style="font-size:18px;color:var(--aayu-teal-50);margin-top:10px;max-width:620px">Developers need to know what to show when there's no data, while work is happening, when something fails, and when it succeeds — not just the happy path.</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<section style="border-top:none">
+  <div class="kicker">Claim / Upload</div>
+  <h2 class="sec">The hero task — all four states</h2>
+  <p class="lead">The most important flow. Errors are specific and never dead-end; every failure offers a way forward.</p>
+  <div class="row">
+    <div class="cell"><span class="tag t-empty">Empty</span><div class="frame" data-state="UploadEmpty"></div><div class="note">First upload — an invitation with the trust promise up front.</div></div>
+    <div class="cell"><span class="tag t-loading">Loading</span><div class="frame" data-state="processing"></div><div class="note">Names the step ("Finding the clause…"), reassures, shows encryption.</div></div>
+    <div class="cell"><span class="tag t-error">Error</span><div class="frame" data-state="UploadError"></div><div class="note">Blurry photo → retake; wrong file → re-upload. No "Error:" jargon.</div></div>
+    <div class="cell"><span class="tag t-success">Success</span><div class="frame" data-state="ClaimSuccess"></div><div class="note">The result IS the success — calm confirmation + the amount.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Health</div>
+  <h2 class="sec">Health record states</h2>
+  <div class="row">
+    <div class="cell"><span class="tag t-empty">Empty</span><div class="frame" data-state="HealthEmpty"></div><div class="note">"Appa's health record starts here." — an invitation, not "nothing yet."</div></div>
+    <div class="cell"><span class="tag t-loading">Loading</span><div class="frame" data-state="HealthLoading"></div><div class="note">Skeleton rows, not a lone spinner.</div></div>
+    <div class="cell"><span class="tag t-success">Populated</span><div class="frame" data-state="health"></div><div class="note">Auto-built from uploads: conditions, meds, allergies, timeline.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Schemes</div>
+  <h2 class="sec">Scheme match states</h2>
+  <div class="row">
+    <div class="cell"><span class="tag t-loading">Loading</span><div class="frame" data-state="SchemesLoading"></div><div class="note">Checking a small curated list against the profile.</div></div>
+    <div class="cell"><span class="tag t-empty">No match</span><div class="frame" data-state="SchemesEmpty"></div><div class="note">Explicit, honest empty state — never a blank screen.</div></div>
+    <div class="cell"><span class="tag t-success">Matched</span><div class="frame" data-state="schemes"></div><div class="note">One high-confidence match + "still checking." 3–5 max.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Home &amp; Appeal</div>
+  <h2 class="sec">Home first-run + appeal failure</h2>
+  <div class="row">
+    <div class="cell"><span class="tag t-empty">Home · first-time</span><div class="frame" data-state="HomeEmpty"></div><div class="note">No claim yet → one clear invitation to fight the first claim.</div></div>
+    <div class="cell"><span class="tag t-success">Home · active</span><div class="frame" data-state="home"></div><div class="note">Returning user → active claim leads with recoverable ₹.</div></div>
+    <div class="cell"><span class="tag t-error">Appeal · AI failure</span><div class="frame" data-state="AppealError"></div><div class="note">"Nothing was lost. Try again." — retry + support, no crash.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Entry</div>
+  <h2 class="sec">Login &amp; consent</h2>
+  <p class="lead">Consent is an explicit, readable screen — not buried fine print. The continue button stays disabled until the box is ticked.</p>
+  <div class="row">
+    <div class="cell"><span class="tag t-empty">Login / Sign up</span><div class="frame" data-state="login"></div></div>
+    <div class="cell"><span class="tag t-empty">Consent</span><div class="frame" data-state="consent"></div></div>
+  </div>
+</section>
+
+</div>
+
+<script type="text/babel" src="AppChrome.jsx"></script>
+<script type="text/babel" src="HomeScreen.jsx"></script>
+<script type="text/babel" src="HealthScreen.jsx"></script>
+<script type="text/babel" src="SchemesScreen.jsx"></script>
+<script type="text/babel" src="ProcessingScreen.jsx"></script>
+<script type="text/babel" src="LoginScreen.jsx"></script>
+<script type="text/babel" src="ConsentScreenFull.jsx"></script>
+<script type="text/babel" src="StateScreens.jsx"></script>
+<script type="text/babel">
+const noop = () => {};
+function node(state){
+  const W = window;
+  switch(state){
+    case 'home': return <W.AppChrome active="home" onNav={noop} wide={false}><W.HomeScreen wide={false} onNav={noop} onReview={noop} onAsk={noop}/></W.AppChrome>;
+    case 'health': return <W.AppChrome active="health" onNav={noop} wide={false}><W.HealthScreen wide={false}/></W.AppChrome>;
+    case 'schemes': return <W.AppChrome active="schemes" onNav={noop} wide={false}><W.SchemesScreen wide={false}/></W.AppChrome>;
+    case 'processing': return <div style={{height:'100%',overflowY:'auto'}}><W.ProcessingScreen/></div>;
+    case 'login': return <div style={{height:'100%',overflowY:'auto'}}><W.LoginScreen wide={false} onAuth={noop}/></div>;
+    case 'consent': return <div style={{height:'100%',overflowY:'auto'}}><W.ConsentScreenFull wide={false} onAgree={noop} onClose={noop}/></div>;
+    default: { const C = W[state]; return C ? <div style={{height:'100%',overflowY:'auto'}}><C/></div> : null; }
+  }
+}
+document.querySelectorAll('[data-state]').forEach(el => { ReactDOM.createRoot(el).render(node(el.dataset.state)); });
+function icons(){ if(window.lucide) window.lucide.createIcons(); }
+setTimeout(icons,100); setTimeout(icons,500); setTimeout(icons,1400);
+</script>
+</body>
+</html>
