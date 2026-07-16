@@ -35,15 +35,15 @@ function downloadAppeal(name: string, text: string) {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ flex: 1, background: "var(--aayu-surface-card)", border: "0.5px solid var(--aayu-border)", borderRadius: "var(--radius-md)", padding: "var(--space-4)" }}>
-      <div style={{ fontSize: 13, color: "var(--aayu-text-muted)" }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 500, color: "var(--aayu-ink-900)", marginTop: 4 }}>{value}</div>
+      <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-muted)" }}>{label}</div>
+      <div className="aayu-text-h1" style={{ fontWeight: 500, color: "var(--aayu-ink-900)", marginTop: 4 }}>{value}</div>
     </div>
   );
 }
 
 function BackLink({ onBack }: { onBack: () => void }) {
   return (
-    <button type="button" onClick={onBack} className="inline-flex items-center gap-1 text-sm font-medium text-[#0F6E56]">
+    <button type="button" onClick={onBack} className="aayu-text-body-sm inline-flex items-center gap-1 font-medium text-(--aayu-teal-600)">
       ← Back to dashboard
     </button>
   );
@@ -63,7 +63,7 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
       <div className="grid gap-5">
         <BackLink onBack={onBack} />
         <section className="aayu-card" aria-live="polite">
-          <h1 className="text-2xl font-medium text-[#042C53]">Preparing your assessment…</h1>
+          <h1 className="aayu-text-h1 font-medium text-(--aayu-ink-900)">Preparing your assessment…</h1>
         </section>
       </div>
     );
@@ -74,8 +74,8 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
       <div className="grid gap-5">
         <BackLink onBack={onBack} />
         <section className="aayu-card" aria-live="polite">
-          <h1 className="mb-2 text-2xl font-medium text-[#042C53]">No assessment yet</h1>
-          <p className="text-[#55706C]">We couldn&rsquo;t read a claim from the uploaded documents. Try uploading the rejection letter again.</p>
+          <h1 className="aayu-text-h1 mb-2 font-medium text-(--aayu-ink-900)">No assessment yet</h1>
+          <p className="aayu-text-body-sm text-(--aayu-text-secondary)">We couldn&rsquo;t read a claim from the uploaded documents. Try uploading the rejection letter again.</p>
         </section>
       </div>
     );
@@ -87,7 +87,8 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
 
       {assessment.source !== "llm" && (
         <div
-          style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: "var(--radius-pill)", background: "var(--aayu-attention-bg)", color: "var(--aayu-attention)", fontSize: 12, fontWeight: 500 }}
+          className="aayu-text-caption"
+          style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: "var(--radius-pill)", background: "var(--aayu-attention-bg)", color: "var(--aayu-attention)", fontWeight: 500 }}
         >
           Preliminary assessment · deeper AI analysis available with an API key
         </div>
@@ -95,17 +96,17 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
 
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <Icon name="shield" size={14} color="var(--aayu-teal-600)" />
-        <span style={{ fontSize: 12, color: "var(--aayu-text-muted)" }}>Encrypted · {name}&rsquo;s claim</span>
+        <span className="aayu-text-caption" style={{ color: "var(--aayu-text-muted)" }}>Encrypted · {name}&rsquo;s claim</span>
       </div>
 
       <div>
-        <span style={{ display: "inline-flex", padding: "4px 10px", borderRadius: "var(--radius-pill)", background: assessment.contestable ? "var(--aayu-attention-bg)" : "var(--aayu-surface-muted)", color: assessment.contestable ? "var(--aayu-attention)" : "var(--aayu-text-secondary)", fontSize: 12, fontWeight: 500 }}>
+        <span className="aayu-text-caption" style={{ display: "inline-flex", padding: "4px 10px", borderRadius: "var(--radius-pill)", background: assessment.contestable ? "var(--aayu-attention-bg)" : "var(--aayu-surface-muted)", color: assessment.contestable ? "var(--aayu-attention)" : "var(--aayu-text-secondary)", fontWeight: 500 }}>
           {assessment.contestable ? "Contestable denial" : "Review needed"}
         </span>
-        <div style={{ fontSize: 30, fontWeight: 500, color: "var(--aayu-teal-600)", marginTop: 10 }}>
+        <div className="aayu-text-stat" style={{ fontWeight: 500, color: "var(--aayu-teal-600)", marginTop: 10 }}>
           ₹{amount.toLocaleString("en-IN")} recoverable
         </div>
-        <div style={{ fontSize: 14, color: "var(--aayu-text-secondary)", marginTop: 4 }}>Based on the documents you uploaded.</div>
+        <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)", marginTop: 4 }}>Based on the documents you uploaded.</div>
       </div>
 
       <div style={{ display: "flex", gap: 10 }}>
@@ -114,21 +115,22 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
       </div>
 
       <section style={{ background: "var(--aayu-surface-card)", border: "0.5px solid var(--aayu-border)", borderRadius: "var(--radius-md)", padding: "var(--space-5)" }}>
-        <h2 style={{ fontSize: 16, fontWeight: 500, color: "var(--aayu-ink-900)", marginBottom: 8 }}>Likely reason for denial</h2>
-        <p style={{ fontSize: 14, color: "var(--aayu-text-secondary)", lineHeight: 1.6 }}>{assessment.reason}</p>
+        <h2 className="aayu-text-h2" style={{ fontWeight: 500, color: "var(--aayu-ink-900)", marginBottom: 8 }}>Likely reason for denial</h2>
+        <p className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>{assessment.reason}</p>
       </section>
 
       <section style={{ background: "var(--aayu-surface-card)", border: "0.5px solid var(--aayu-border)", borderRadius: "var(--radius-md)", padding: "var(--space-5)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 10 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 500, color: "var(--aayu-ink-900)" }}>Appeal letter</h2>
-          <span style={{ fontSize: 12, color: "var(--aayu-attention)", fontWeight: 500 }}>Review before sending</span>
+          <h2 className="aayu-text-h2" style={{ fontWeight: 500, color: "var(--aayu-ink-900)" }}>Appeal letter</h2>
+          <span className="aayu-text-caption" style={{ color: "var(--aayu-attention)", fontWeight: 500 }}>Review before sending</span>
         </div>
         <textarea
           value={letter}
           onChange={(event) => setEdited(event.target.value)}
           aria-label="Appeal letter"
           rows={9}
-          style={{ width: "100%", resize: "vertical", border: "0.5px solid var(--aayu-border)", borderRadius: "var(--radius-sm)", padding: 12, fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.6, color: "var(--aayu-text-primary)", background: "var(--aayu-surface-page)" }}
+          className="aayu-text-body-sm"
+          style={{ width: "100%", resize: "vertical", border: "0.5px solid var(--aayu-border)", borderRadius: "var(--radius-sm)", padding: 12, fontFamily: "var(--font-sans)", color: "var(--aayu-text-primary)", background: "var(--aayu-surface-page)" }}
         />
         <button className="primary-button mt-3" onClick={() => downloadAppeal(name, letter)} disabled={!letter}>Download appeal letter</button>
       </section>
@@ -136,8 +138,8 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
       <button type="button" onClick={onViewHealth} className="aayu-card text-left" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <Icon name="health" size={20} color="var(--aayu-teal-600)" />
         <span>
-          <span className="block font-medium text-[#123C3A]">View {name}&rsquo;s health record</span>
-          <span className="text-sm text-[#55706C]">These documents also started {name}&rsquo;s Vault.</span>
+          <span className="aayu-text-h2 block" style={{ fontWeight: 500, color: "var(--aayu-text-primary)" }}>View {name}&rsquo;s health record</span>
+          <span className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>These documents also started {name}&rsquo;s Vault.</span>
         </span>
       </button>
     </div>
