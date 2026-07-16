@@ -3,6 +3,7 @@ const { Button, TrustBadge, StatusChip, MetricCard, Input, PatientSelector, Uplo
 function ClaimResultScreen({onOpenQA, onOpenVault}) {
   const [amount, setAmount] = React.useState(0);
   React.useEffect(() => {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setAmount(18400); return; }
     let start;
     const target = 18400;
     const dur = 800;
