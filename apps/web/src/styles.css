@@ -113,6 +113,18 @@ input:focus, select:focus, button:focus-visible {
   font-weight: 500;
 }
 
+@keyframes aayu-shimmer {
+  0% { background-position: 150% 0; }
+  100% { background-position: -50% 0; }
+}
+
+.aayu-skeleton {
+  background: linear-gradient(100deg, var(--aayu-surface-muted) 30%, var(--aayu-border) 50%, var(--aayu-surface-muted) 70%);
+  background-size: 300% 100%;
+  animation: aayu-shimmer 1.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+  .aayu-skeleton { animation: none; background: var(--aayu-surface-muted); }
 }

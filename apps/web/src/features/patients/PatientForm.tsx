@@ -1,4 +1,4 @@
-import { type FormEvent } from "react";
+import { type FormEvent, type ReactNode } from "react";
 
 import type { Patient, PatientInput } from "../../services/api";
 
@@ -9,9 +9,10 @@ type PatientFormProps = {
   onSave: (input: PatientInput) => Promise<void>;
   submitLabel?: string;
   message?: string;
+  secondaryAction?: ReactNode;
 };
 
-export function PatientForm({ patient, busy, onCancel, onSave, submitLabel, message }: PatientFormProps) {
+export function PatientForm({ patient, busy, onCancel, onSave, submitLabel, message, secondaryAction }: PatientFormProps) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -37,6 +38,7 @@ export function PatientForm({ patient, busy, onCancel, onSave, submitLabel, mess
       <div className="flex flex-wrap gap-3">
         <button className="primary-button" disabled={busy}>{submitLabel ?? (patient ? "Save changes" : "Continue with this patient")}</button>
         {onCancel && <button type="button" onClick={onCancel} className="secondary-button">Cancel</button>}
+        {secondaryAction}
       </div>
     </form>
   );

@@ -117,3 +117,41 @@ async def test_failed_document_can_be_requeued(client: AsyncClient) -> None:
     assert retry.json()["status"] == "queued"
     retried_job = await client.get(f"/v1/jobs/{first.json()['id']}")
     assert retried_job.json()["status"] == "failed"
+
+
+@pytest.mark.asyncio
+async def test_delete_patient(client: AsyncClient) -> None:
+    created = await client.post("/v1/patients", json={"name": "Amma", "relationship": "mother"})
+    assert created.status_code == 201
+    patient_id = created.json()["id"]
+
+    listed = await client.get("/v1/patients")
+    assert any(p["id"] == patient_id for p in listed.json())
+
+    forbidden = await client.delete(
+        f"/v1/patients/{patient_id}", headers={"X-Dev-User": "other_user"}
+    )
+    assert forbidden.status_code == 404
+
+    deleted = await client.delete(f"/v1/patients/{patient_id}")
+    assert deleted.status_code == 204
+
+    listed_again = await client.get("/v1/patients")
+    assert all(p["id"] != patient_id for p in listed_again.json())
+
+    missing = await client.delete(f"/v1/patients/{patient_id}")
+    assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_delete_patient_preflight_is_allowed(client: AsyncClient) -> None:
+    response = await client.options(
+        "/v1/patients/00000000-0000-0000-0000-000000000000",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "DELETE",
+        },
+    )
+
+    assert response.status_code == 200
+    assert "DELETE" in response.headers["access-control-allow-methods"]

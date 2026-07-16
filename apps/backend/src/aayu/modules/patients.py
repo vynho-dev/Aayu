@@ -59,3 +59,14 @@ async def update_patient(
     await session.commit()
     await session.refresh(patient)
     return patient
+
+
+@router.delete("/{patient_id}", status_code=204)
+async def delete_patient(
+    patient_id: uuid.UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> None:
+    patient = await owned_patient(patient_id, user, session)
+    await session.delete(patient)
+    await session.commit()

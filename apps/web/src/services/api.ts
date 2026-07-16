@@ -124,6 +124,10 @@ export const api = createApi({
       query: ({ patientId, body }) => ({ url: `patients/${patientId}`, method: "PUT", body }),
       invalidatesTags: ["Patient"],
     }),
+    deletePatient: build.mutation<void, string>({
+      query: (patientId) => ({ url: `patients/${patientId}`, method: "DELETE" }),
+      invalidatesTags: ["Patient"],
+    }),
     acceptConsent: build.mutation<void, string>({
       query: (patientId) => ({
         url: `patients/${patientId}/consent`,
@@ -194,6 +198,7 @@ export const {
   useCompleteUploadMutation,
   useCreatePatientMutation,
   useUpdatePatientMutation,
+  useDeletePatientMutation,
   useCreateUploadIntentMutation,
   useJobQuery,
   usePatientsQuery,
