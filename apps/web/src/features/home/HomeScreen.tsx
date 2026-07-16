@@ -1,6 +1,7 @@
-import { useHealthQuery, useSchemesQuery, type Patient } from "../../services/api";
+import { useClaimQuery, useDocumentsQuery, useHealthQuery, useSchemesQuery, type Patient } from "../../services/api";
 import { Icon, type IconName } from "../app/Icon";
 import type { Tab } from "../app/AppShell";
+import { KIND_LABELS, statusLabel } from "../documents/kinds";
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -45,11 +46,15 @@ function QuickTile({ icon, title, value, sub, onClick }: { icon: IconName; title
   );
 }
 
-export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, onNav }: { patient: Patient | null; onNewClaim: () => void; onAskPolicy: () => void; onViewDocuments: () => void; onNav: (id: Tab) => void }) {
+export function HomeScreen({ patient, onNewClaim, onViewClaim, onAskPolicy, onViewDocuments, onNav }: { patient: Patient | null; onNewClaim: () => void; onViewClaim: () => void; onAskPolicy: () => void; onViewDocuments: () => void; onNav: (id: Tab) => void }) {
   const name = patient?.name ?? "your family";
-  const { data: health } = useHealthQuery(patient?.id ?? "", { skip: !patient?.id });
-  const { data: schemes } = useSchemesQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data: health, isError: healthError, refetch: refetchHealth } = useHealthQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data: schemes, isError: schemesError, refetch: refetchSchemes } = useSchemesQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data: claim } = useClaimQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data: documents = [], isError: documentsError, refetch: refetchDocuments } = useDocumentsQuery(patient?.id ?? "", { skip: !patient?.id });
   const matchedCount = schemes?.filter((s) => s.matched).length ?? 0;
+  const healthReady = (health?.data.documents?.length ?? 0) > 0;
+  const hasClaim = Boolean(claim?.assessment);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Header: greeting + patient chip */}
@@ -106,17 +111,18 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
             gap: 12,
           }}
         >
-          <div className="aayu-text-h2" style={{ fontWeight: 500, color: "var(--aayu-teal-800)" }}>Start your first claim</div>
+          <div className="aayu-text-h2" style={{ fontWeight: 500, color: "var(--aayu-teal-800)" }}>{hasClaim ? "Your claim assessment is ready" : "Start a claim"}</div>
           <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>
-            Upload a rejection letter and we&rsquo;ll read it, find the clause the insurer missed, and draft a
-            clause-cited appeal. You pay only if we win.
+            {hasClaim
+              ? `Aayu found ₹${(claim?.assessment?.recoverable_amount ?? 0).toLocaleString("en-IN")} potentially recoverable. Review the assessment and appeal draft before sending.`
+              : "Upload a rejection letter and we&rsquo;ll read it, find the clause the insurer missed, and draft a clause-cited appeal."}
           </div>
           <button
-            onClick={onNewClaim}
+            onClick={hasClaim ? onViewClaim : onNewClaim}
             className="primary-button"
             style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, alignSelf: "flex-start", padding: "12px 18px" }}
           >
-            <Icon name="plus" size={18} color="#fff" /> Fight a claim
+            <Icon name={hasClaim ? "claim" : "plus"} size={18} color="#fff" /> {hasClaim ? "View assessment" : "Fight a claim"}
           </button>
         </section>
 
@@ -124,7 +130,7 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
           <div>
             <SectionLabel>Quick access</SectionLabel>
             <div style={{ display: "flex", gap: 12 }}>
-              <QuickTile icon="health" value={health ? "Ready" : "—"} title="Health record" sub={health ? "Extracted" : "Nothing yet"} onClick={() => onNav("health")} />
+              <QuickTile icon="health" value={healthReady ? "Ready" : "—"} title="Health record" sub={healthReady ? "Extracted" : "Nothing yet"} onClick={() => onNav("health")} />
               <QuickTile icon="schemes" value={matchedCount > 0 ? String(matchedCount) : "—"} title="Scheme matches" sub={matchedCount > 0 ? "May be eligible" : "No match yet"} onClick={() => onNav("schemes")} />
             </div>
           </div>
@@ -162,13 +168,28 @@ export function HomeScreen({ patient, onNewClaim, onAskPolicy, onViewDocuments, 
                 padding: "var(--space-5)",
               }}
             >
-              <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-muted)" }}>
-                Nothing yet. Your appeal, health records, and scheme matches will appear here after your first claim.
-              </div>
+              {documents.length === 0 ? (
+                <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-muted)" }}>No activity yet. Add a document to begin this patient&rsquo;s record.</div>
+              ) : (
+                <div className="grid gap-2">
+                  {documents.slice(0, 3).map((document) => (
+                    <button type="button" key={document.id} onClick={onViewDocuments} className="aayu-text-body-sm text-left text-(--aayu-text-secondary)">
+                      {KIND_LABELS[document.kind] ?? document.kind} · {document.filename} · {statusLabel(document.status)}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {(healthError || schemesError || documentsError) && (
+        <div className="aayu-card flex flex-wrap items-center justify-between gap-3" role="alert">
+          <span className="aayu-text-body-sm text-(--aayu-text-secondary)">We couldn&rsquo;t refresh all of {name}&rsquo;s information.</span>
+          <button type="button" className="secondary-button" onClick={() => { void refetchHealth(); void refetchSchemes(); void refetchDocuments(); }}>Try again</button>
+        </div>
+      )}
 
       <div
         className="aayu-text-body-sm"

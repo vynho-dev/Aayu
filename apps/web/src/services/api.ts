@@ -143,7 +143,7 @@ export const api = createApi({
     }),
     completeUpload: build.mutation<ProcessingJob, string>({
       query: (documentId) => ({ url: `documents/${documentId}/complete`, method: "POST" }),
-      invalidatesTags: ["Job"],
+      invalidatesTags: ["Job", "Document", "Claim", "Health", "Scheme", "Policy"],
     }),
     job: build.query<ProcessingJob, string>({
       query: (jobId) => `jobs/${jobId}`,

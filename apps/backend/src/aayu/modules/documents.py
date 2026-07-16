@@ -38,6 +38,25 @@ async def owned_document(document_id: uuid.UUID, user: User, session: AsyncSessi
     return document
 
 
+async def dispatch_processing(
+    job: ProcessingJob, background_tasks: BackgroundTasks, session: AsyncSession
+) -> ProcessingJob:
+    """Put one durable job back on its configured execution path."""
+    if get_settings().job_queue_url:
+        try:
+            publish_job(job.id)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=503, detail="Processing is temporarily unavailable"
+            ) from exc
+    job.status = JobStatus.queued.value
+    await session.commit()
+    await session.refresh(job)
+    if not get_settings().job_queue_url:
+        background_tasks.add_task(process_document_task, job.document_id)
+    return job
+
+
 @router.post(
     "/patients/{patient_id}/documents/upload-intent",
     response_model=UploadIntentView,
@@ -121,16 +140,14 @@ async def complete_upload(
         select(ProcessingJob).where(ProcessingJob.document_id == document_id)
     )
     if existing is not None:
-        if existing.status == JobStatus.pending_dispatch.value:
-            try:
-                publish_job(existing.id)
-            except Exception as exc:
-                raise HTTPException(
-                    status_code=503, detail="Processing is temporarily unavailable"
-                ) from exc
-            existing.status = JobStatus.queued.value
+        if existing.status == JobStatus.failed.value:
+            existing.status = JobStatus.pending_dispatch.value
+            existing.error_code = None
+            existing.attempts += 1
+            document.status = DocumentStatus.uploaded.value
             await session.commit()
-            await session.refresh(existing)
+        if existing.status == JobStatus.pending_dispatch.value:
+            return await dispatch_processing(existing, background_tasks, session)
         return existing
 
     document.status = DocumentStatus.uploaded.value
@@ -138,24 +155,7 @@ async def complete_upload(
     session.add(job)
     await session.commit()
     await session.refresh(job)
-    # With a real queue, hand off to the worker. Without one (dev), process inline as a
-    # BackgroundTask so uploads actually complete instead of sitting queued forever.
-    if get_settings().job_queue_url:
-        try:
-            publish_job(job.id)
-        except Exception as exc:
-            raise HTTPException(
-                status_code=503, detail="Processing is temporarily unavailable"
-            ) from exc
-        job.status = JobStatus.queued.value
-        await session.commit()
-        await session.refresh(job)
-    else:
-        job.status = JobStatus.queued.value
-        await session.commit()
-        await session.refresh(job)
-        background_tasks.add_task(process_document_task, job.document_id)
-    return job
+    return await dispatch_processing(job, background_tasks, session)
 
 
 @router.get("/jobs/{job_id}", response_model=JobView)
