@@ -1,10 +1,11 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from aayu import policy_chat
 from aayu.auth import get_current_user
 from aayu.config import get_settings
 from aayu.database import get_session
@@ -97,12 +98,24 @@ async def put_dev_upload(
 @router.post("/documents/{document_id}/complete", response_model=JobView, status_code=202)
 async def complete_upload(
     document_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> ProcessingJob:
     document = await owned_document(document_id, user, session)
     if not upload_exists(document.object_key):
         raise HTTPException(status_code=409, detail="Upload has not completed")
+
+    if document.kind == "policy" and not policy_chat.index_exists(
+        document.patient_id, document.id
+    ):
+        background_tasks.add_task(
+            policy_chat.build_policy_index_in_background,
+            document.patient_id,
+            document.id,
+            document.object_key,
+        )
+
     existing = await session.scalar(
         select(ProcessingJob).where(ProcessingJob.document_id == document_id)
     )
