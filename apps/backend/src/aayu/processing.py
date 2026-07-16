@@ -131,9 +131,12 @@ async def process_document(document_id: uuid.UUID) -> None:
             with tempfile.NamedTemporaryFile(suffix=suffix, delete=True) as tmp:
                 tmp.write(raw)
                 tmp.flush()
-                text = extract_text(Path(tmp.name))
+                if (document.content_type or "").startswith("audio/"):
+                    text = transcribe_audio(Path(tmp.name))  # doctor-note voice → transcript
+                else:
+                    text = extract_text(Path(tmp.name))
 
-            await _upsert_health_record(session, patient.id, text)
+            await _upsert_health_record(session, document, text)
 
             recoverable = 0.0
             if document.kind == "rejection_letter":
@@ -164,11 +167,79 @@ async def process_document(document_id: uuid.UUID) -> None:
             await session.commit()
 
 
-async def _upsert_health_record(session, patient_id: uuid.UUID, text: str) -> None:
-    excerpt = text.strip()[:800]
-    amounts = parse_amounts(text)
+def transcribe_audio(path: Path) -> str:
+    """Speech-to-text for doctor-note audio via OpenAI Whisper. Requires OPENAI_API_KEY."""
+    from openai import OpenAI
+
+    client = OpenAI()
+    with open(path, "rb") as handle:
+        result = client.audio.transcriptions.create(model="whisper-1", file=handle)
+    return result.text or ""
+
+
+def _llm_health_extract(corpus: str) -> dict:
+    """Structured health graph from the patient's accumulated document text.
+
+    Returns {} on any failure — the deterministic document list still stands.
+    ponytail: guarded on OPENAI_API_KEY; untested until a key is present.
+    """
+    try:
+        from openai import OpenAI
+
+        client = OpenAI()
+        prompt = (
+            "From these medical/insurance documents and doctor notes for one patient, extract a "
+            "STRICT JSON health summary with keys: conditions (string[]), medications (string[]), "
+            "lab_findings (string[]), procedures (string[]), tests (string[] tests done "
+            "or advised), follow_up (string any follow-up instruction, else empty), and summary "
+            "(one plain-language sentence). Use [] or empty string when unknown. "
+            "Documents:\n\n" + corpus[:8000]
+        )
+        response = client.chat.completions.create(
+            model=CHAT_MODEL,
+            response_format={"type": "json_object"},
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return json.loads(response.choices[0].message.content or "{}")
+    except Exception:
+        logger.exception("LLM health extraction failed")
+        return {}
+
+
+async def _upsert_health_record(session, document: Document, text: str) -> None:
+    """Merge this document into the patient's cumulative health record.
+
+    ponytail: re-runs the LLM over ALL stored doc texts on every upload. Fine at MVP volume;
+    switch to incremental merge if a patient accumulates many documents.
+    """
+    patient_id = document.patient_id
     record = await session.scalar(select(HealthRecord).where(HealthRecord.patient_id == patient_id))
-    data = {"summary": excerpt, "amounts": amounts[:5], "extracted_chars": len(text)}
+    stored = dict(record.data) if record is not None else {}
+    docs = [d for d in stored.get("documents", []) if d.get("document_id") != str(document.id)]
+    docs.append(
+        {
+            "document_id": str(document.id),
+            "kind": document.kind,
+            "filename": document.filename,
+            "excerpt": text.strip()[:400],
+            "text": text[:4000],
+            "amounts": parse_amounts(text)[:5],
+        }
+    )
+    corpus = "\n\n".join(f"[{d['kind']}] {d.get('text', '')}" for d in docs)
+    structured = _llm_health_extract(corpus) if os.environ.get("OPENAI_API_KEY") else {}
+    amounts = sorted({a for d in docs for a in d.get("amounts", [])}, reverse=True)[:6]
+    data = {
+        "documents": docs,  # keeps per-doc text for the next re-extraction; frontend ignores it
+        "amounts": amounts,
+        "conditions": structured.get("conditions", stored.get("conditions", [])),
+        "medications": structured.get("medications", stored.get("medications", [])),
+        "lab_findings": structured.get("lab_findings", stored.get("lab_findings", [])),
+        "procedures": structured.get("procedures", stored.get("procedures", [])),
+        "tests": structured.get("tests", stored.get("tests", [])),
+        "follow_up": structured.get("follow_up", stored.get("follow_up", "")),
+        "summary": structured.get("summary", stored.get("summary", "")),
+    }
     if record is None:
         session.add(HealthRecord(patient_id=patient_id, data=data))
     else:

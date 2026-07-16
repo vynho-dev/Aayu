@@ -1,4 +1,5 @@
 import { useHealthQuery, useSchemesQuery, type Patient } from "../../services/api";
+import { KIND_LABELS } from "../documents/kinds";
 
 const SCHEME_LABELS: Record<string, string> = {
   "PM-JAY": "Ayushman Bharat (PM-JAY)",
@@ -10,9 +11,27 @@ function ScreenTitle({ children }: { children: string }) {
   return <h1 className="text-3xl font-medium text-[#042C53]">{children}</h1>;
 }
 
-export function HealthScreen({ patient }: { patient: Patient | null }) {
+function ChipCard({ label, items }: { label: string; items?: string[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="aayu-card">
+      <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">{label}</span>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {items.map((item, i) => (
+          <span key={i} className="rounded-full bg-[#E3F2ED] px-3 py-1 text-sm text-[#0F6E56]">{item}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | null; onViewDocuments: () => void }) {
   const { data, isLoading, isError } = useHealthQuery(patient?.id ?? "", { skip: !patient?.id });
   const name = patient?.name ?? "your family";
+  const record = data?.data;
+  const amountChips = record?.amounts?.map((amount) => `₹${amount.toLocaleString("en-IN")}`);
+  const documents = record?.documents ?? [];
+
   return (
     <section aria-labelledby="health-title" className="grid gap-4">
       <ScreenTitle>Health</ScreenTitle>
@@ -20,29 +39,41 @@ export function HealthScreen({ patient }: { patient: Patient | null }) {
       {(isError || (!isLoading && !data)) && (
         <div className="aayu-card text-[#55706C]">
           {name}&rsquo;s health record starts here. It fills in automatically from the documents you
-          upload with your first claim.
+          upload — claims, discharge summaries, lab reports, and prescriptions.
         </div>
       )}
-      {data && (
+      {record && (
         <>
-          <div className="aayu-card grid gap-1">
-            <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Extracted from your documents</span>
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[#123C3A]">
-              {data.data.summary || "No readable text was found in the uploaded documents."}
-            </p>
-          </div>
-          {(data.data.amounts?.length ?? 0) > 0 && (
-            <div className="aayu-card">
-              <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Amounts detected</span>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {data.data.amounts!.map((amount, i) => (
-                  <span key={i} className="rounded-full bg-[#E3F2ED] px-3 py-1 text-sm text-[#0F6E56]">
-                    ₹{amount.toLocaleString("en-IN")}
-                  </span>
-                ))}
-              </div>
+          {record.summary && (
+            <div className="aayu-card grid gap-1">
+              <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Summary</span>
+              <p className="mt-1 text-sm leading-relaxed text-[#123C3A]">{record.summary}</p>
             </div>
           )}
+          <ChipCard label="Conditions" items={record.conditions} />
+          <ChipCard label="Medications" items={record.medications} />
+          <ChipCard label="Lab findings" items={record.lab_findings} />
+          <ChipCard label="Procedures" items={record.procedures} />
+          <ChipCard label="Tests" items={record.tests} />
+          {record.follow_up && (
+            <div className="aayu-card grid gap-1">
+              <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Follow-up</span>
+              <p className="mt-1 text-sm leading-relaxed text-[#123C3A]">{record.follow_up}</p>
+            </div>
+          )}
+          <ChipCard label="Amounts detected" items={amountChips} />
+          <div className="aayu-card grid gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Source documents</span>
+              <button type="button" onClick={onViewDocuments} className="text-sm font-medium text-[#0F6E56]">View all</button>
+            </div>
+            {documents.length === 0 && <p className="text-sm text-[#55706C]">No documents yet.</p>}
+            {documents.map((doc) => (
+              <div key={doc.document_id} className="text-sm text-[#123C3A]">
+                {doc.filename} <span className="text-[#8A8F8C]">· {KIND_LABELS[doc.kind] ?? doc.kind}</span>
+              </div>
+            ))}
+          </div>
         </>
       )}
     </section>

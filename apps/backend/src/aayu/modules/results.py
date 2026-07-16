@@ -14,6 +14,7 @@ from aayu.models import Claim, Document, HealthRecord, SchemeMatch, User
 from aayu.modules.patients import owned_patient
 from aayu.schemas import (
     ClaimView,
+    DocumentSummaryView,
     HealthRecordView,
     PolicyDocumentView,
     SchemeMatchView,
@@ -63,6 +64,21 @@ async def list_schemes(
         select(SchemeMatch)
         .where(SchemeMatch.patient_id == patient_id)
         .order_by(SchemeMatch.created_at)
+    )
+    return list(rows)
+
+
+@router.get("/patients/{patient_id}/documents", response_model=list[DocumentSummaryView])
+async def list_documents(
+    patient_id: uuid.UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> list[Document]:
+    await owned_patient(patient_id, user, session)
+    rows = await session.scalars(
+        select(Document)
+        .where(Document.patient_id == patient_id)
+        .order_by(Document.created_at.desc())
     )
     return list(rows)
 
