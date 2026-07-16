@@ -10,7 +10,8 @@ export type IconName =
   | "shield"
   | "chevron"
   | "plus"
-  | "chat";
+  | "chat"
+  | "trash";
 
 const paths: Record<IconName, ReactNode> = {
   home: (
@@ -55,6 +56,14 @@ const paths: Record<IconName, ReactNode> = {
   ),
   chevron: <path d="m6 9 6 6 6-6" />,
   chat: <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" />,
+  trash: (
+    <>
+      <path d="M4 7h16" />
+      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+      <path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" />
+      <path d="M10 11v6M14 11v6" />
+    </>
+  ),
   plus: (
     <>
       <path d="M12 5v14" />

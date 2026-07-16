@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { enableDevelopmentIdentity, setSessionToken } from "./app/authSlice";
 import { useAppDispatch, useAppSelector } from "./app/store";
 import { SignInScreen } from "./features/auth/SignInScreen";
+import { AppLoadingSkeleton } from "./features/app/Skeleton";
 import { HeroFlow } from "./features/claim/HeroFlow";
 
 export function DevelopmentApp() {
@@ -23,12 +24,12 @@ export function ClerkApp() {
     const timer = window.setInterval(refresh, 50_000);
     return () => { active = false; window.clearInterval(timer); };
   }, [dispatch, getToken, isSignedIn]);
-  if (!isLoaded) return <main className="p-8">Preparing your secure session…</main>;
+  if (!isLoaded) return <AppLoadingSkeleton />;
   if (!isSignedIn) return <SignInScreen />;
   return <ReadyApp />;
 }
 
 function ReadyApp() {
   const ready = useAppSelector((state) => state.auth.ready);
-  return ready ? <HeroFlow /> : <main className="p-8">Preparing your secure session…</main>;
+  return ready ? <HeroFlow /> : <AppLoadingSkeleton />;
 }

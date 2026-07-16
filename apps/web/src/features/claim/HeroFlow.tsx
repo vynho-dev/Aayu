@@ -7,6 +7,7 @@ import {
   useCompleteUploadMutation,
   useCreatePatientMutation,
   useCreateUploadIntentMutation,
+  useDeletePatientMutation,
   useJobQuery,
   usePatientsQuery,
   useUpdatePatientMutation,
@@ -14,13 +15,16 @@ import {
 } from "../../services/api";
 import type { Patient, PatientInput } from "../../services/api";
 import { AppShell, type Tab } from "../app/AppShell";
+import { ConfirmDialog } from "../app/ConfirmDialog";
+import { Icon } from "../app/Icon";
+import { AppLoadingSkeleton } from "../app/Skeleton";
 import { HealthScreen, SchemesScreen } from "../app/TabScreens";
 import { DocumentsScreen } from "../documents/DocumentsScreen";
 import { DOC_KIND_OPTIONS } from "../documents/kinds";
 import { HomeScreen } from "../home/HomeScreen";
+import { PatientForm } from "../patients/PatientForm";
 import { PolicyQAScreen } from "../policy/PolicyQAScreen";
 import { ClaimResultScreen } from "./ClaimResultScreen";
-import { PatientForm } from "../patients/PatientForm";
 
 type ClaimStep = "consent" | "upload" | "processing";
 type UploadMode = "claim" | "document";
@@ -32,11 +36,15 @@ export function HeroFlow() {
   const { data: patients = [], isLoading } = usePatientsQuery();
   const [createPatient, patientState] = useCreatePatientMutation();
   const [updatePatient, updatePatientState] = useUpdatePatientMutation();
+  const [deletePatient, deleteState] = useDeletePatientMutation();
   const [acceptConsent, consentState] = useAcceptConsentMutation();
   const [createIntent, intentState] = useCreateUploadIntentMutation();
   const [completeUpload] = useCompleteUploadMutation();
 
   const [patientId, setPatientId] = useState("");
+  const [skippedProfile, setSkippedProfile] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState("");
   const [consented, setConsented] = useState(false);
   const [tab, setTab] = useState<Tab>("home");
   const [claimStep, setClaimStep] = useState<ClaimStep | null>(null);
@@ -51,6 +59,28 @@ export function HeroFlow() {
   const { data: job } = useJobQuery(jobId, { skip: !jobId, pollingInterval: jobId ? 3000 : 0 });
 
   const patient = patients.find((p) => p.id === patientId) ?? null;
+
+  // Profile creation is optional — a signed-in user can skip it and browse,
+  // but anything that actually needs a patient (claim, policy Q&A, documents)
+  // routes back here instead of hitting the backend with an empty id.
+  const promptCreateProfile = () => setSkippedProfile(false);
+
+  const requestDeletePatient = (id: string, name: string) => {
+    setDeleteMessage("");
+    setPendingDelete({ id, name });
+  };
+
+  async function confirmDeletePatient() {
+    if (!pendingDelete) return;
+    const { id } = pendingDelete;
+    try {
+      await deletePatient(id).unwrap();
+      if (id === patientId) { setPatientId(""); setTab("home"); }
+      setPendingDelete(null);
+    } catch {
+      setDeleteMessage("We couldn't delete this profile. Please try again.");
+    }
+  }
 
   async function createAndSelectPatient(input: PatientInput, destination: Tab) {
     setPatientMessage("");
@@ -115,6 +145,7 @@ export function HeroFlow() {
   }
 
   const launchUpload = (mode: UploadMode) => {
+    if (!patientId) return promptCreateProfile();
     setMessage("");
     setUploadMode(mode);
     setQaOpen(false);
@@ -123,6 +154,8 @@ export function HeroFlow() {
     setClaimStep(consented ? "upload" : "consent");
   };
   const startClaim = () => launchUpload("claim");
+  const askPolicy = () => (patientId ? setQaOpen(true) : promptCreateProfile());
+  const viewDocuments = () => (patientId ? setDocsOpen(true) : promptCreateProfile());
 
   const backToHome = () => {
     setClaimStep(null);
@@ -148,35 +181,66 @@ export function HeroFlow() {
     setTab(id);
   };
 
-  if (isLoading) return <StateCard title="Preparing your account…" />;
+  if (isLoading) return <AppLoadingSkeleton />;
 
-  // Profile setup — create or select the patient before entering the app.
-  if (!patientId) {
+  // Profile setup — create or select a patient, or skip and do it later.
+  if (!patientId && !skippedProfile) {
     return (
-      <main className="mx-auto min-h-screen max-w-200 px-4 py-8 sm:py-14">
-        <header className="aayu-text-h1 mb-10 font-medium text-(--aayu-ink-900)">Aayu</header>
-        <section aria-labelledby="patient-title">
-          <p className="aayu-text-body-sm mb-2 text-(--aayu-text-secondary)">First, who are we helping?</p>
-          <h1 id="patient-title" className="aayu-text-display mb-3 font-medium text-(--aayu-ink-900)">Create a patient profile</h1>
-          <p className="aayu-text-body-sm mb-8 text-(--aayu-text-secondary)">Their claim documents and health record stay together.</p>
-          {patients.length > 0 && (
-            <div className="mb-6 grid gap-3">
-              {patients.map((existing) => (
-                <button
-                  className="aayu-card text-left"
-                  key={existing.id}
-                  onClick={() => { setPatientId(existing.id); setTab("home"); }}
-                  type="button"
-                >
-                  <span className="aayu-text-body-sm block font-medium text-(--aayu-text-primary)">{existing.name}</span>
-                  <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{existing.relationship}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          <PatientForm busy={patientState.isLoading} message={patientMessage} onSave={async (input) => { await createAndSelectPatient(input, "home"); }} />
-        </section>
-      </main>
+      <>
+        <main className="mx-auto min-h-screen max-w-200 px-4 py-8 sm:py-14">
+          <header className="aayu-text-h1 mb-10 font-medium text-(--aayu-ink-900)">Aayu</header>
+          <section aria-labelledby="patient-title">
+            <p className="aayu-text-body-sm mb-2 text-(--aayu-text-secondary)">First, who are we helping?</p>
+            <h1 id="patient-title" className="aayu-text-display mb-3 font-medium text-(--aayu-ink-900)">Create a patient profile</h1>
+            <p className="aayu-text-body-sm mb-8 text-(--aayu-text-secondary)">Their claim documents and health record stay together.</p>
+            {patients.length > 0 && (
+              <div className="mb-6 grid gap-3">
+                {patients.map((existing) => (
+                  <div key={existing.id} className="aayu-card flex items-center justify-between gap-3">
+                    <button
+                      className="min-w-0 flex-1 text-left"
+                      onClick={() => { setPatientId(existing.id); setTab("home"); }}
+                      type="button"
+                    >
+                      <span className="aayu-text-body-sm block font-medium text-(--aayu-text-primary)">{existing.name}</span>
+                      <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{existing.relationship}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => requestDeletePatient(existing.id, existing.name)}
+                      disabled={deleteState.isLoading}
+                      aria-label={`Delete ${existing.name}'s profile`}
+                      className="shrink-0 rounded-full p-2 text-(--aayu-danger) hover:bg-(--aayu-danger-bg)"
+                    >
+                      <Icon name="trash" size={18} color="currentColor" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <PatientForm
+              busy={patientState.isLoading}
+              message={patientMessage}
+              submitLabel="Create"
+              onSave={async (input) => { await createAndSelectPatient(input, "home"); }}
+              secondaryAction={
+                <button type="button" onClick={() => setSkippedProfile(true)} className="secondary-button">Skip</button>
+              }
+            />
+          </section>
+        </main>
+        {pendingDelete && (
+          <ConfirmDialog
+            title="Delete this profile?"
+            message={`This permanently removes ${pendingDelete.name}'s claim documents, health record, and scheme matches.`}
+            confirmLabel="Delete profile"
+            pending={deleteState.isLoading}
+            error={deleteMessage}
+            onConfirm={confirmDeletePatient}
+            onCancel={() => setPendingDelete(null)}
+          />
+        )}
+      </>
     );
   }
 
@@ -225,12 +289,12 @@ export function HeroFlow() {
       patient={patient}
       onNewClaim={startClaim}
       onViewClaim={() => setClaimOpen(true)}
-      onAskPolicy={() => setQaOpen(true)}
-      onViewDocuments={() => setDocsOpen(true)}
+      onAskPolicy={askPolicy}
+      onViewDocuments={viewDocuments}
       onNav={onNav}
     />;
   } else if (tab === "health") {
-    content = <HealthScreen patient={patient} onViewDocuments={() => setDocsOpen(true)} />;
+    content = <HealthScreen patient={patient} onViewDocuments={viewDocuments} />;
   } else if (tab === "schemes") {
     content = <SchemesScreen patient={patient} />;
   } else {
@@ -249,19 +313,36 @@ export function HeroFlow() {
           message={patientMessage}
         />
       </section>
-    ) : <ProfileScreen
-      patient={patient}
-      patients={patients}
-      onAddPatient={() => { setPatientMessage(""); setEditingPatient("new"); }}
-      onEditPatient={() => { if (patient) { setPatientMessage(""); setEditingPatient(patient); } }}
-      onSelectPatient={(id) => setPatientId(id)}
-    />;
+    ) : (
+      <ProfileScreen
+        patient={patient}
+        patients={patients}
+        onAddPatient={() => { setPatientMessage(""); setEditingPatient("new"); }}
+        onEditPatient={() => { if (patient) { setPatientMessage(""); setEditingPatient(patient); } }}
+        onSelectPatient={(id) => setPatientId(id)}
+        onDeletePatient={requestDeletePatient}
+        deleting={deleteState.isLoading}
+      />
+    );
   }
 
   return (
-    <AppShell active={claimStep ? "claim" : tab} onNav={onNav}>
-      {content}
-    </AppShell>
+    <>
+      <AppShell active={claimStep ? "claim" : tab} onNav={onNav}>
+        {content}
+      </AppShell>
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete this profile?"
+          message={`This permanently removes ${pendingDelete.name}'s claim documents, health record, and scheme matches.`}
+          confirmLabel="Delete profile"
+          pending={deleteState.isLoading}
+          error={deleteMessage}
+          onConfirm={confirmDeletePatient}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -360,12 +441,14 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
   );
 }
 
-function ProfileScreen({ patient, patients, onAddPatient, onEditPatient, onSelectPatient }: {
+function ProfileScreen({ patient, patients, onAddPatient, onEditPatient, onSelectPatient, onDeletePatient, deleting }: {
   patient: Patient | null;
   patients: Patient[];
   onAddPatient: () => void;
   onEditPatient: () => void;
   onSelectPatient: (id: string) => void;
+  onDeletePatient: (id: string, name: string) => void;
+  deleting: boolean;
 }) {
   return (
     <section aria-labelledby="profile-title" className="grid gap-5">
@@ -379,19 +462,34 @@ function ProfileScreen({ patient, patients, onAddPatient, onEditPatient, onSelec
           <h2 className="aayu-text-label font-medium uppercase tracking-wide text-(--aayu-text-secondary)">Patients you manage</h2>
           <button type="button" onClick={onAddPatient} className="aayu-text-body-sm font-medium text-(--aayu-teal-600)">Add patient</button>
         </div>
+        {patients.length === 0 && (
+          <p className="aayu-text-body-sm text-(--aayu-text-secondary)">No profiles yet — add one to start a claim or build a health record.</p>
+        )}
         {patients.map((existing) => {
           const selected = existing.id === patient?.id;
           return (
-            <button
-              type="button"
+            <div
               key={existing.id}
-              onClick={() => onSelectPatient(existing.id)}
-              className="aayu-card flex items-center justify-between gap-4 text-left"
+              className="aayu-card flex items-center justify-between gap-4"
               style={{ borderColor: selected ? "var(--aayu-teal-600)" : undefined }}
             >
-              <span className="grid gap-1"><span className="aayu-text-body-sm font-medium text-(--aayu-text-primary)">{existing.name}</span><span className="aayu-text-body-sm text-(--aayu-text-secondary)">{existing.relationship}{existing.date_of_birth ? ` · ${existing.date_of_birth}` : ""}</span></span>
+              <button type="button" onClick={() => onSelectPatient(existing.id)} className="min-w-0 flex-1 text-left">
+                <span className="grid gap-1">
+                  <span className="aayu-text-body-sm font-medium text-(--aayu-text-primary)">{existing.name}</span>
+                  <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{existing.relationship}{existing.date_of_birth ? ` · ${existing.date_of_birth}` : ""}</span>
+                </span>
+              </button>
               <span className="aayu-text-body-sm font-medium text-(--aayu-teal-600)">{selected ? "Current" : "Switch"}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => onDeletePatient(existing.id, existing.name)}
+                disabled={deleting}
+                aria-label={`Delete ${existing.name}'s profile`}
+                className="shrink-0 rounded-full p-2 text-(--aayu-danger) hover:bg-(--aayu-danger-bg)"
+              >
+                <Icon name="trash" size={18} color="currentColor" />
+              </button>
+            </div>
           );
         })}
       </div>
