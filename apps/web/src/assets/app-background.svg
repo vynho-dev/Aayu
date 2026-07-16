@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900">
+  <defs>
+    <linearGradient id="bg-wash" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F7F6F2" />
+      <stop offset="55%" stop-color="#EAF3F0" />
+      <stop offset="100%" stop-color="#DCF0E7" />
+    </linearGradient>
+
+    <g id="doc-x-icon" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M14 4h32l14 14v46a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4Z" />
+      <path d="M46 4v14h14" />
+      <path d="M22 30a8 8 0 0 1 16 0c0 6-8 12-8 12s-8-6-8-12Z" />
+      <path d="M27 30l3 3 5-5" />
+      <circle cx="50" cy="58" r="9" fill="#F7F6F2" />
+      <path d="M46 54l8 8M54 54l-8 8" />
+    </g>
+  </defs>
+
+  <rect x="0" y="0" width="1440" height="900" fill="url(#bg-wash)" />
+
+  <g opacity="0.16">
+    <path d="M256 152c0-15.5 12.5-28 28-28s28 12.5 28 28c0-15.5 12.5-28 28-28s28 12.5 28 28-12.5 28-28 28c15.5 0 28 12.5 28 28s-12.5 28-28 28-28-12.5-28-28c0 15.5-12.5 28-28 28s-28-12.5-28-28 12.5-28 28-28c-15.5 0-28-12.5-28-28Z"
+      fill="none" stroke="#0F6E56" stroke-width="3" stroke-linejoin="round" />
+  </g>
+
+  <use href="#doc-x-icon" x="1084" y="112" width="64" height="64" opacity="0.16" />
+  <use href="#doc-x-icon" x="268" y="556" width="64" height="64" opacity="0.16" />
+
+  <g opacity="0.16" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(1096,600)">
+    <path d="M4 46h72" />
+    <path d="M14 46V20M28 46V20M42 46V20M56 46V20M66 46V20" />
+    <path d="M40 2 2 20h76Z" />
+  </g>
+
+  <g opacity="0.22" stroke="#0F6E56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(1300,720)">
+    <path d="M14 0v10M14 18v10M0 14h10M18 14h10" />
+    <path d="M4 4l6 6M20 24l-6-6M24 4l-6 6M4 24l6-6" />
+  </g>
+
+  <text x="720" y="478" text-anchor="middle" font-family="'Inter', -apple-system, 'Segoe UI', sans-serif"
+    font-size="160" font-weight="600" fill="#0F6E56" opacity="0.16">Aayu</text>
+</svg>

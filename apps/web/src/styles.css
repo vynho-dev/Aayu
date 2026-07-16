@@ -12,31 +12,53 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #f7f6f2;
-  color: #123c3a;
-  font-family: Inter, sans-serif;
+  background: var(--aayu-surface-page) url("./assets/app-background.svg") center / cover no-repeat fixed;
+  color: var(--aayu-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* fixed backgrounds can visually judder during scroll on some devices */
+  body { background-attachment: scroll; }
 }
 
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: wait; opacity: 0.65; }
 
+/* Centralized type scale — every component should reach for one of these
+   instead of an inline font-size, so sizing stays in one place and stays
+   fluid (see design-system/tokens/typography.css) across breakpoints. */
+/* Weight is deliberately not set here — it stays a per-instance choice
+   (Tailwind's font-medium/font-semibold, or the browser default) so it
+   composes predictably with utility classes instead of fighting them. */
+.aayu-text-display { font-size: var(--text-display-size); line-height: var(--text-display-lh); }
+.aayu-text-stat { font-size: var(--text-stat-size); line-height: var(--text-stat-lh); }
+.aayu-text-h1 { font-size: var(--text-h1-size); line-height: var(--text-h1-lh); }
+.aayu-text-h2 { font-size: var(--text-h2-size); line-height: var(--text-h2-lh); }
+.aayu-text-body { font-size: var(--text-body-size); line-height: var(--text-body-lh); }
+.aayu-text-body-sm { font-size: var(--text-body-sm-size); line-height: var(--text-body-sm-lh); }
+.aayu-text-caption { font-size: var(--text-caption-size); line-height: var(--text-caption-lh); }
+.aayu-text-label { font-size: var(--text-label-size); line-height: var(--text-label-lh); }
+
 label {
   display: grid;
-  gap: 8px;
-  color: #123c3a;
-  font-size: 14px;
+  gap: var(--space-2);
+  color: var(--aayu-text-primary);
+  font-size: var(--text-body-sm-size);
   font-weight: 500;
 }
 
 input, select {
   width: 100%;
-  min-height: 44px;
-  border: 1px solid #c9d6d2;
-  border-radius: 8px;
-  background: #fff;
-  padding: 10px 12px;
-  color: #123c3a;
+  min-height: var(--tap-target);
+  border: 1px solid var(--aayu-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--aayu-surface-card);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-body-size);
+  color: var(--aayu-text-primary);
 }
 
 input:focus, select:focus, button:focus-visible {
@@ -45,24 +67,25 @@ input:focus, select:focus, button:focus-visible {
 }
 
 .aayu-card {
-  border: 0.5px solid #d8e0dd;
-  border-radius: 12px;
-  background: #fff;
-  padding: 24px;
+  border: 0.5px solid var(--aayu-border);
+  border-radius: var(--radius-md);
+  background: var(--aayu-surface-card);
+  padding: var(--space-6);
 }
 
 .primary-button {
-  min-height: 48px;
+  min-height: var(--tap-target);
   border: 0;
-  border-radius: 8px;
-  background: #0f6e56;
-  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--aayu-teal-600);
+  padding: var(--space-3) var(--space-5);
   color: #fff;
+  font-size: var(--text-body-size);
   font-weight: 500;
   transition: transform 120ms ease, background 120ms ease;
 }
 
-.primary-button:hover { background: #268c70; }
+.primary-button:hover { background: var(--aayu-teal-400); }
 .primary-button:active { transform: scale(0.98); }
 
 @media (prefers-reduced-motion: reduce) {

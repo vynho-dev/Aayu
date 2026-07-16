@@ -34,6 +34,7 @@ export function HeroFlow() {
   const [completeUpload] = useCompleteUploadMutation();
 
   const [patientId, setPatientId] = useState("");
+  const [previousPatientId, setPreviousPatientId] = useState("");
   const [consented, setConsented] = useState(false);
   const [tab, setTab] = useState<Tab>("home");
   const [claimStep, setClaimStep] = useState<ClaimStep | null>(null);
@@ -45,6 +46,17 @@ export function HeroFlow() {
   const { data: job } = useJobQuery(jobId, { skip: !jobId, pollingInterval: jobId ? 3000 : 0 });
 
   const patient = patients.find((p) => p.id === patientId) ?? null;
+
+  const switchPatient = () => {
+    setPreviousPatientId(patientId);
+    setPatientId("");
+  };
+
+  const cancelSwitchPatient = () => {
+    setPatientId(previousPatientId);
+    setPreviousPatientId("");
+    setTab("profile");
+  };
 
   async function addPatient(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -122,12 +134,21 @@ export function HeroFlow() {
   // Profile setup — create or select the patient before entering the app.
   if (!patientId) {
     return (
-      <main className="mx-auto min-h-screen max-w-[720px] px-4 py-8 sm:py-14">
-        <header className="mb-10 text-xl font-medium text-[#042C53]">Aayu</header>
+      <main className="mx-auto min-h-screen max-w-200 px-4 py-8 sm:py-14">
+        <header className="aayu-text-h1 mb-10 font-medium text-(--aayu-ink-900)">Aayu</header>
         <section aria-labelledby="patient-title">
-          <p className="mb-2 text-sm text-[#55706C]">First, who are we helping?</p>
-          <h1 id="patient-title" className="mb-3 text-3xl font-medium text-[#042C53]">Create a patient profile</h1>
-          <p className="mb-8 text-[#55706C]">Their claim documents and health record stay together.</p>
+          {previousPatientId && (
+            <button
+              type="button"
+              onClick={cancelSwitchPatient}
+              className="aayu-text-body-sm mb-6 inline-flex items-center gap-1 font-medium text-(--aayu-teal-600)"
+            >
+              ← Back to profile
+            </button>
+          )}
+          <p className="aayu-text-body-sm mb-2 text-(--aayu-text-secondary)">First, who are we helping?</p>
+          <h1 id="patient-title" className="aayu-text-display mb-3 font-medium text-(--aayu-ink-900)">Create a patient profile</h1>
+          <p className="aayu-text-body-sm mb-8 text-(--aayu-text-secondary)">Their claim documents and health record stay together.</p>
           {patients.length > 0 && (
             <div className="mb-6 grid gap-3">
               {patients.map((existing) => (
@@ -137,8 +158,8 @@ export function HeroFlow() {
                   onClick={() => { setPatientId(existing.id); setTab("home"); }}
                   type="button"
                 >
-                  <span className="block font-medium text-[#123C3A]">{existing.name}</span>
-                  <span className="text-sm text-[#55706C]">{existing.relationship}</span>
+                  <span className="aayu-text-body-sm block font-medium text-(--aayu-text-primary)">{existing.name}</span>
+                  <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{existing.relationship}</span>
                 </button>
               ))}
             </div>
@@ -198,7 +219,7 @@ export function HeroFlow() {
   } else if (tab === "schemes") {
     content = <SchemesScreen patient={patient} />;
   } else {
-    content = <ProfileScreen patient={patient} onSwitchPatient={() => setPatientId("")} />;
+    content = <ProfileScreen patient={patient} onSwitchPatient={switchPatient} />;
   }
 
   return (
@@ -228,15 +249,15 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
   const failed = job?.status === "failed";
   return (
     <div>
-      <button type="button" onClick={onBack} className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-[#0F6E56]">
+      <button type="button" onClick={onBack} className="aayu-text-body-sm mb-6 inline-flex items-center gap-1 font-medium text-(--aayu-teal-600)">
         ← Back to dashboard
       </button>
 
       {step === "consent" && (
         <section aria-labelledby="consent-title" className="aayu-card">
-          <p className="mb-2 text-sm text-[#55706C]">Before the first upload</p>
-          <h1 id="consent-title" className="mb-4 text-3xl font-medium text-[#042C53]">You stay in control</h1>
-          <p className="mb-6 text-[#55706C]">
+          <p className="aayu-text-body-sm mb-2 text-(--aayu-text-secondary)">Before the first upload</p>
+          <h1 id="consent-title" className="aayu-text-display mb-4 font-medium text-(--aayu-ink-900)">You stay in control</h1>
+          <p className="aayu-text-body-sm mb-6 text-(--aayu-text-secondary)">
             Aayu will securely process these documents to assess claims and build{" "}
             {patient?.name ?? "this patient"}&rsquo;s health record. We won&rsquo;t use them for advertising.
           </p>
@@ -246,10 +267,10 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
 
       {step === "upload" && (
         <section aria-labelledby="upload-title">
-          <h1 id="upload-title" className="mb-3 text-3xl font-medium text-[#042C53]">
+          <h1 id="upload-title" className="aayu-text-display mb-3 font-medium text-(--aayu-ink-900)">
             {isClaim ? "Upload the claim document" : "Add a document"}
           </h1>
-          <p className="mb-8 text-[#55706C]">
+          <p className="aayu-text-body-sm mb-8 text-(--aayu-text-secondary)">
             {isClaim
               ? "Start with the rejection letter. You can add the policy and bills later."
               : "Choose the document type and upload a PDF or photo. Aayu reads it into the health record."}
@@ -263,7 +284,7 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
               </select>
             </label>
             <label>PDF, photo, or audio<input required name="document" type="file" accept="application/pdf,image/jpeg,image/png,image/webp,audio/*" /></label>
-            {message && <p role="alert" className="text-sm text-[#A23D32]">{message}</p>}
+            {message && <p role="alert" className="aayu-text-body-sm text-(--aayu-danger)">{message}</p>}
             <button className="primary-button" disabled={uploading}>{isClaim ? "Upload and assess" : "Upload"}</button>
           </form>
         </section>
@@ -289,10 +310,10 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
                   : "Your file is safely uploaded. You can leave this screen while we process it."
             }
           />
-          {completed && !isClaim ? (
+          {/* The top back link already covers "back to dashboard" for every other state here —
+              only "view documents" (a distinct destination) earns its own button. */}
+          {completed && !isClaim && (
             <button type="button" onClick={onDone} className="primary-button mt-6">View documents</button>
-          ) : (
-            <button type="button" onClick={onBack} className="primary-button mt-6">Back to dashboard</button>
           )}
         </>
       )}
@@ -303,16 +324,16 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
 function ProfileScreen({ patient, onSwitchPatient }: { patient: Patient | null; onSwitchPatient: () => void }) {
   return (
     <section aria-labelledby="profile-title" className="grid gap-5">
-      <h1 id="profile-title" className="text-3xl font-medium text-[#042C53]">Profile</h1>
+      <h1 id="profile-title" className="aayu-text-display font-medium text-(--aayu-ink-900)">Profile</h1>
       <div className="aayu-card grid gap-1">
-        <span className="font-medium text-[#123C3A]">{patient?.name ?? "Patient"}</span>
-        <span className="text-sm text-[#55706C]">{patient?.relationship ?? ""}</span>
+        <span className="aayu-text-body-sm font-medium text-(--aayu-text-primary)">{patient?.name ?? "Patient"}</span>
+        <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{patient?.relationship ?? ""}</span>
       </div>
       <div className="aayu-card flex items-center gap-3">
         {clerkActive ? <UserButton /> : null}
-        <span className="text-sm text-[#55706C]">{clerkActive ? "Manage your account or sign out" : "Development session"}</span>
+        <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{clerkActive ? "Manage your account or sign out" : "Development session"}</span>
       </div>
-      <button type="button" onClick={onSwitchPatient} className="text-left text-sm font-medium text-[#0F6E56]">Switch patient</button>
+      <button type="button" onClick={onSwitchPatient} className="aayu-text-body-sm text-left font-medium text-(--aayu-teal-600)">Switch patient</button>
     </section>
   );
 }
@@ -320,8 +341,8 @@ function ProfileScreen({ patient, onSwitchPatient }: { patient: Patient | null; 
 function StateCard({ title, body }: { title: string; body?: string }) {
   return (
     <section className="aayu-card" aria-live="polite">
-      <h1 className="mb-3 text-2xl font-medium text-[#042C53]">{title}</h1>
-      {body && <p className="text-[#55706C]">{body}</p>}
+      <h1 className="aayu-text-h1 mb-3 font-medium text-(--aayu-ink-900)">{title}</h1>
+      {body && <p className="aayu-text-body-sm text-(--aayu-text-secondary)">{body}</p>}
     </section>
   );
 }

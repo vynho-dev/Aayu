@@ -20,15 +20,15 @@ function Sidebar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
     <aside
       className="hidden md:flex"
       style={{
-        width: 240,
+        width: 260,
         flexShrink: 0,
         flexDirection: "column",
         background: "var(--aayu-surface-card)",
         borderRight: "0.5px solid var(--aayu-border)",
-        padding: "24px 16px",
+        padding: "var(--space-6) var(--space-4)",
       }}
     >
-      <div style={{ fontSize: 26, fontWeight: 500, color: "var(--aayu-teal-600)", padding: "0 12px 24px" }}>Aayu</div>
+      <div className="aayu-text-display" style={{ fontWeight: 500, color: "var(--aayu-teal-600)", padding: "0 var(--space-3) var(--space-6)" }}>Aayu</div>
       <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {NAV.map((n) => {
           const on = active === n.id;
@@ -36,18 +36,17 @@ function Sidebar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
             <button
               key={n.id}
               onClick={() => onNav(n.id)}
+              className="aayu-text-body"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                padding: "11px 12px",
+                padding: "var(--space-3)",
                 borderRadius: "var(--radius-sm)",
                 border: "none",
                 textAlign: "left",
                 background: on ? "var(--aayu-success-bg)" : "transparent",
                 color: on ? "var(--aayu-teal-800)" : "var(--aayu-text-secondary)",
-                fontFamily: "var(--font-sans)",
-                fontSize: 15,
                 fontWeight: 500,
               }}
             >
@@ -63,17 +62,17 @@ function Sidebar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
           display: "flex",
           alignItems: "center",
           gap: 10,
-          padding: "12px",
+          padding: "var(--space-3)",
           borderTop: "0.5px solid var(--aayu-border)",
         }}
       >
         {clerkActive ? (
           <>
             <UserButton />
-            <span style={{ fontSize: 13, color: "var(--aayu-text-secondary)" }}>Your account</span>
+            <span className="aayu-text-caption" style={{ color: "var(--aayu-text-secondary)" }}>Your account</span>
           </>
         ) : (
-          <span style={{ fontSize: 13, color: "var(--aayu-text-muted)" }}>Development session</span>
+          <span className="aayu-text-caption" style={{ color: "var(--aayu-text-muted)" }}>Development session</span>
         )}
       </div>
     </aside>
@@ -103,8 +102,8 @@ function TabBar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
             >
               <span
                 style={{
-                  width: 52,
-                  height: 52,
+                  width: "var(--space-12)",
+                  height: "var(--space-12)",
                   borderRadius: "50%",
                   background: "var(--aayu-teal-600)",
                   display: "flex",
@@ -115,7 +114,7 @@ function TabBar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
               >
                 <Icon name={n.icon} size={24} color="#fff" />
               </span>
-              <span style={{ fontSize: 11, color: "var(--aayu-text-secondary)", fontWeight: 500 }}>{n.label}</span>
+              <span className="aayu-text-label" style={{ color: "var(--aayu-text-secondary)", fontWeight: 500 }}>{n.label}</span>
             </button>
           );
         }
@@ -127,7 +126,7 @@ function TabBar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "none", padding: "4px 8px" }}
           >
             <Icon name={n.icon} size={22} color={on ? "var(--aayu-teal-600)" : "var(--aayu-text-muted)"} />
-            <span style={{ fontSize: 11, fontWeight: 500, color: on ? "var(--aayu-teal-600)" : "var(--aayu-text-muted)" }}>{n.label}</span>
+            <span className="aayu-text-label" style={{ fontWeight: 500, color: on ? "var(--aayu-teal-600)" : "var(--aayu-text-muted)" }}>{n.label}</span>
           </button>
         );
       })}
@@ -137,11 +136,11 @@ function TabBar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
 
 export function AppShell({ active, onNav, children }: { active: Tab; onNav: (id: Tab) => void; children: ReactNode }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--aayu-surface-page)", fontFamily: "var(--font-sans)" }}>
+    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "var(--font-sans)" }}>
       <Sidebar active={active} onNav={onNav} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <main style={{ flex: 1, overflowY: "auto" }}>
-          <div className="mx-auto w-full max-w-[720px] px-4 py-6 md:px-8 md:py-10">{children}</div>
+          <div className="mx-auto w-full max-w-300 px-4 py-6 md:px-12 md:py-14">{children}</div>
         </main>
         <TabBar active={active} onNav={onNav} />
       </div>
