@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"AayuDesignSystem_84693d","components":[{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"MetricCard","sourcePath":"components/core/MetricCard.jsx"},{"name":"StatusChip","sourcePath":"components/core/StatusChip.jsx"},{"name":"TrustBadge","sourcePath":"components/core/TrustBadge.jsx"},{"name":"AssessmentCard","sourcePath":"components/feedback/AssessmentCard.jsx"},{"name":"LetterCard","sourcePath":"components/feedback/LetterCard.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"PatientSelector","sourcePath":"components/forms/PatientSelector.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"UploadDropzone","sourcePath":"components/forms/UploadDropzone.jsx"},{"name":"BottomSheet","sourcePath":"components/navigation/BottomSheet.jsx"},{"name":"ListRow","sourcePath":"components/navigation/ListRow.jsx"}],"sourceHashes":{"components/core/Button.jsx":"fd1844520f2f","components/core/MetricCard.jsx":"a54257cceb2d","components/core/StatusChip.jsx":"a95255e37642","components/core/TrustBadge.jsx":"8e19a151a986","components/feedback/AssessmentCard.jsx":"e7b7397ea344","components/feedback/LetterCard.jsx":"436cd92d98a1","components/forms/Input.jsx":"283ac5177dbf","components/forms/PatientSelector.jsx":"fe21a0fb06ec","components/forms/Select.jsx":"63dba6caf1a8","components/forms/UploadDropzone.jsx":"86e398b213c0","components/navigation/BottomSheet.jsx":"1055ca470036","components/navigation/ListRow.jsx":"c7961ae36b39","ui_kits/aayu-app/AppChrome.jsx":"6d62f1e38205","ui_kits/aayu-app/AuthScreen.jsx":"b86ab6c2a6c1","ui_kits/aayu-app/ClaimResultScreen.jsx":"ce3af891ce1e","ui_kits/aayu-app/ConsentScreen.jsx":"bc670b817872","ui_kits/aayu-app/ConsentScreenFull.jsx":"f53f666c5ae4","ui_kits/aayu-app/HealthScreen.jsx":"e8b5e8b2bad2","ui_kits/aayu-app/HomeScreen.jsx":"224b37033b29","ui_kits/aayu-app/LandingScreen.jsx":"30841d63da0c","ui_kits/aayu-app/LoginScreen.jsx":"5730d93d2a1e","ui_kits/aayu-app/PatientPickerScreen.jsx":"0c8026e1c33e","ui_kits/aayu-app/PolicyQAScreen.jsx":"269b5315dd01","ui_kits/aayu-app/ProcessingScreen.jsx":"837aedfdfeb9","ui_kits/aayu-app/ProfileScreen.jsx":"73157de27357","ui_kits/aayu-app/SchemesScreen.jsx":"744e4f88cfc0","ui_kits/aayu-app/StateScreens.jsx":"28d2784555e9","ui_kits/aayu-app/UploadScreen.jsx":"7cb680b6d44e","ui_kits/aayu-app/VaultScreen.jsx":"31798b5b8e3f"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"AayuDesignSystem_84693d","components":[{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"MetricCard","sourcePath":"components/core/MetricCard.jsx"},{"name":"StatusChip","sourcePath":"components/core/StatusChip.jsx"},{"name":"TrustBadge","sourcePath":"components/core/TrustBadge.jsx"},{"name":"AssessmentCard","sourcePath":"components/feedback/AssessmentCard.jsx"},{"name":"LetterCard","sourcePath":"components/feedback/LetterCard.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"PatientSelector","sourcePath":"components/forms/PatientSelector.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"UploadDropzone","sourcePath":"components/forms/UploadDropzone.jsx"},{"name":"BottomSheet","sourcePath":"components/navigation/BottomSheet.jsx"},{"name":"ListRow","sourcePath":"components/navigation/ListRow.jsx"}],"sourceHashes":{"components/core/Button.jsx":"fd1844520f2f","components/core/MetricCard.jsx":"a54257cceb2d","components/core/StatusChip.jsx":"a95255e37642","components/core/TrustBadge.jsx":"8e19a151a986","components/feedback/AssessmentCard.jsx":"e7b7397ea344","components/feedback/LetterCard.jsx":"436cd92d98a1","components/forms/Input.jsx":"da7aeb42e3ca","components/forms/PatientSelector.jsx":"fe21a0fb06ec","components/forms/Select.jsx":"f8e82c32bcb0","components/forms/UploadDropzone.jsx":"86e398b213c0","components/navigation/BottomSheet.jsx":"b73d834b0309","components/navigation/ListRow.jsx":"c7961ae36b39","ui_kits/aayu-app/AppChrome.jsx":"6d62f1e38205","ui_kits/aayu-app/AuthScreen.jsx":"b86ab6c2a6c1","ui_kits/aayu-app/ClaimResultScreen.jsx":"ce3af891ce1e","ui_kits/aayu-app/ConsentScreen.jsx":"bc670b817872","ui_kits/aayu-app/ConsentScreenFull.jsx":"f53f666c5ae4","ui_kits/aayu-app/HealthScreen.jsx":"e8b5e8b2bad2","ui_kits/aayu-app/HomeScreen.jsx":"224b37033b29","ui_kits/aayu-app/LandingScreen.jsx":"30841d63da0c","ui_kits/aayu-app/LoginScreen.jsx":"5730d93d2a1e","ui_kits/aayu-app/PatientPickerScreen.jsx":"0c8026e1c33e","ui_kits/aayu-app/PolicyQAScreen.jsx":"269b5315dd01","ui_kits/aayu-app/ProcessingScreen.jsx":"26dcfcaf2d3b","ui_kits/aayu-app/ProfileScreen.jsx":"73157de27357","ui_kits/aayu-app/SchemesScreen.jsx":"744e4f88cfc0","ui_kits/aayu-app/StateScreens.jsx":"28d2784555e9","ui_kits/aayu-app/UploadScreen.jsx":"7cb680b6d44e","ui_kits/aayu-app/VaultScreen.jsx":"31798b5b8e3f"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -352,7 +352,8 @@ Object.assign(__ds_scope, { LetterCard });
 // components/forms/Input.jsx
 try { (() => {
 const {
-  useState
+  useState,
+  useId
 } = React;
 function Input({
   label,
@@ -363,6 +364,9 @@ function Input({
   type = 'text'
 }) {
   const [touched, setTouched] = useState(false);
+  const id = useId();
+  const errId = id + '-err';
+  const showError = touched && error;
   return React.createElement('div', {
     style: {
       display: 'flex',
@@ -371,29 +375,34 @@ function Input({
       fontFamily: 'var(--font-sans)'
     }
   }, label && React.createElement('label', {
+    htmlFor: id,
     style: {
       fontSize: 'var(--text-caption-size)',
       color: 'var(--aayu-text-secondary)',
       fontWeight: 500
     }
   }, label), React.createElement('input', {
+    id,
     type,
     placeholder,
     value,
     onChange,
+    'aria-invalid': showError ? true : undefined,
+    'aria-describedby': showError ? errId : undefined,
     onBlur: () => setTouched(true),
     style: {
       height: 'var(--tap-target)',
       borderRadius: 'var(--radius-sm)',
-      border: touched && error ? '1px solid var(--aayu-danger)' : '1px solid var(--aayu-border-strong)',
+      border: showError ? '1px solid var(--aayu-danger)' : '1px solid var(--aayu-border-strong)',
       padding: '0 14px',
       fontSize: 16,
       fontFamily: 'var(--font-sans)',
-      outline: 'none',
       color: 'var(--aayu-text-primary)',
       background: 'var(--aayu-surface-card)'
     }
-  }), touched && error && React.createElement('div', {
+  }), showError && React.createElement('div', {
+    id: errId,
+    role: 'alert',
     style: {
       fontSize: 'var(--text-caption-size)',
       color: 'var(--aayu-danger)',
@@ -406,7 +415,8 @@ function Input({
     style: {
       width: 13,
       height: 13
-    }
+    },
+    'aria-hidden': 'true'
   }), error));
 }
 Object.assign(__ds_scope, { Input });
@@ -469,6 +479,9 @@ Object.assign(__ds_scope, { PatientSelector });
 
 // components/forms/Select.jsx
 try { (() => {
+const {
+  useId
+} = React;
 function Select({
   label,
   options = [],
@@ -476,6 +489,7 @@ function Select({
   onChange,
   placeholder = 'Select…'
 }) {
+  const id = useId();
   return React.createElement('div', {
     style: {
       display: 'flex',
@@ -484,6 +498,7 @@ function Select({
       fontFamily: 'var(--font-sans)'
     }
   }, label && React.createElement('label', {
+    htmlFor: id,
     style: {
       fontSize: 'var(--text-caption-size)',
       color: 'var(--aayu-text-secondary)',
@@ -494,6 +509,7 @@ function Select({
       position: 'relative'
     }
   }, React.createElement('select', {
+    id,
     value,
     onChange,
     style: {
@@ -508,7 +524,6 @@ function Select({
       fontFamily: 'var(--font-sans)',
       color: value ? 'var(--aayu-text-primary)' : 'var(--aayu-text-muted)',
       background: 'var(--aayu-surface-card)',
-      outline: 'none',
       cursor: 'pointer'
     }
   }, !value && React.createElement('option', {
@@ -523,6 +538,7 @@ function Select({
     }, lbl);
   })), React.createElement('i', {
     'data-lucide': 'chevron-down',
+    'aria-hidden': 'true',
     style: {
       position: 'absolute',
       right: 14,
@@ -626,6 +642,9 @@ Object.assign(__ds_scope, { UploadDropzone });
 
 // components/navigation/BottomSheet.jsx
 try { (() => {
+const {
+  useId
+} = React;
 function BottomSheet({
   title,
   children,
@@ -633,6 +652,7 @@ function BottomSheet({
   primaryLabel = 'Continue',
   onPrimary
 }) {
+  const titleId = useId();
   return React.createElement('div', {
     style: {
       display: 'flex',
@@ -643,6 +663,9 @@ function BottomSheet({
       fontFamily: 'var(--font-sans)'
     }
   }, React.createElement('div', {
+    role: 'dialog',
+    'aria-modal': 'true',
+    'aria-labelledby': titleId,
     style: {
       width: '100%',
       maxWidth: 420,
@@ -661,6 +684,7 @@ function BottomSheet({
       alignItems: 'center'
     }
   }, React.createElement('div', {
+    id: titleId,
     style: {
       fontSize: 18,
       fontWeight: 500,
@@ -668,6 +692,7 @@ function BottomSheet({
     }
   }, title), onClose && React.createElement('button', {
     onClick: onClose,
+    'aria-label': 'Close',
     style: {
       border: 'none',
       background: 'none',
@@ -676,6 +701,7 @@ function BottomSheet({
     }
   }, React.createElement('i', {
     'data-lucide': 'x',
+    'aria-hidden': 'true',
     style: {
       width: 20,
       height: 20
@@ -2353,6 +2379,8 @@ function ProcessingScreen() {
     return () => clearInterval(t);
   }, []);
   return /*#__PURE__*/React.createElement("div", {
+    role: "status",
+    "aria-live": "polite",
     style: {
       minHeight: 520,
       background: 'var(--aayu-surface-page)',
@@ -2371,7 +2399,8 @@ function ProcessingScreen() {
       border: '3px solid var(--aayu-teal-100)',
       borderTopColor: 'var(--aayu-teal-600)',
       animation: 'spin 1s linear infinite'
-    }
+    },
+    "aria-hidden": "true"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 17,
