@@ -5,10 +5,29 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class PatientProfile(BaseModel):
+    gender: str | None = Field(default=None, max_length=40)
+    blood_group: str | None = Field(default=None, max_length=8)
+    insurance_provider: str | None = Field(default=None, max_length=120)
+    insurance_policy_number: str | None = Field(default=None, max_length=120)
+    insurance_policy_expiry: date | None = None
+    medical_history: list[str] = Field(default_factory=list)
+    allergies: list[str] = Field(default_factory=list)
+    medications: list[str] = Field(default_factory=list)
+    chronic_conditions: list[str] = Field(default_factory=list)
+    consultation_history: list[str] = Field(default_factory=list)
+    emergency_contact_name: str | None = Field(default=None, max_length=120)
+    emergency_contact_relationship: str | None = Field(default=None, max_length=80)
+    emergency_contact_phone: str | None = Field(default=None, max_length=32)
+    preferred_hospital: str | None = Field(default=None, max_length=160)
+    preferred_doctor: str | None = Field(default=None, max_length=160)
+
+
 class PatientCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     relationship: str = Field(min_length=1, max_length=40)
     date_of_birth: date | None = None
+    profile: PatientProfile = Field(default_factory=PatientProfile)
 
 
 class PatientView(PatientCreate):
@@ -26,6 +45,11 @@ class ConsentView(BaseModel):
     patient_id: uuid.UUID
     version: str
     accepted_at: datetime
+
+
+class ConsentStatusView(BaseModel):
+    accepted: bool
+    accepted_at: datetime | None = None
 
 
 class UploadIntentCreate(BaseModel):
@@ -53,6 +77,7 @@ class UploadIntentCreate(BaseModel):
         "lab_report",
         "prescription",
         "doctor_note",
+        "insurance_document",
     ]
 
 

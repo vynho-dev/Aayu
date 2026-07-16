@@ -20,6 +20,79 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
+interface SetupItem {
+  label: string;
+  done: boolean;
+  onClick: () => void;
+}
+
+function SetupChecklist({ items }: { items: SetupItem[] }) {
+  const doneCount = items.filter((item) => item.done).length;
+  if (doneCount === items.length) return null;
+  return (
+    <div className="aayu-card" style={{ padding: "var(--space-5)", display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span className="aayu-text-body-sm" style={{ fontWeight: 500, color: "var(--aayu-text-primary)" }}>Getting set up</span>
+        <span className="aayu-text-label" style={{ color: "var(--aayu-text-muted)" }}>{doneCount} of {items.length} done</span>
+      </div>
+      {items.map((item) =>
+        item.done ? (
+          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: "50%",
+                background: "var(--aayu-teal-600)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                flexShrink: 0,
+              }}
+            >
+              ✓
+            </span>
+            <span className="aayu-text-body-sm" style={{ color: "var(--aayu-text-muted)" }}>{item.label}</span>
+          </div>
+        ) : (
+          <button
+            key={item.label}
+            type="button"
+            onClick={item.onClick}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
+              background: "none",
+              border: "none",
+              padding: 0,
+              fontFamily: "var(--font-sans)",
+              textAlign: "left",
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: "50%",
+                  border: "1.5px solid var(--aayu-border)",
+                  flexShrink: 0,
+                }}
+              />
+              <span className="aayu-text-body-sm" style={{ color: "var(--aayu-text-primary)" }}>{item.label}</span>
+            </span>
+            <Icon name="chevron" size={16} color="var(--aayu-text-muted)" />
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
 function QuickTile({ icon, title, value, sub, onClick }: { icon: IconName; title: string; value: string; sub: string; onClick: () => void }) {
   return (
     <button
@@ -55,6 +128,20 @@ export function HomeScreen({ patient, onNewClaim, onViewClaim, onAskPolicy, onVi
   const matchedCount = schemes?.filter((s) => s.matched).length ?? 0;
   const healthReady = (health?.data.documents?.length ?? 0) > 0;
   const hasClaim = Boolean(claim?.assessment);
+  const profile = patient?.profile;
+  const profileSignals = [profile?.blood_group, profile?.insurance_provider, profile?.emergency_contact_name, profile?.preferred_doctor, ...(profile?.chronic_conditions ?? []), ...(profile?.medications ?? [])].filter(Boolean).length;
+  const profileReady = profileSignals >= 3;
+  const nextAction = !profileReady
+    ? { title: "Complete the care profile", body: "Add insurance, medical history, emergency contact, and care preferences so every claim starts with the right facts.", label: "Complete profile", onClick: () => onNav("profile"), icon: "profile" as IconName }
+    : hasClaim
+      ? { title: "Your claim assessment is ready", body: `Aayu found ₹${(claim?.assessment?.recoverable_amount ?? 0).toLocaleString("en-IN")} potentially recoverable. Review the assessment and appeal draft before sending.`, label: "View assessment", onClick: onViewClaim, icon: "claim" as IconName }
+      : { title: "Start a claim", body: "Upload a rejection letter and we’ll explain the denial, identify missing evidence, and draft the next step.", label: "Fight a claim", onClick: onNewClaim, icon: "plus" as IconName };
+  const setupItems: SetupItem[] = [
+    { label: `Add ${name}'s care details`, done: profileReady, onClick: () => onNav("profile") },
+    { label: "Upload a first document", done: documents.length > 0, onClick: onViewDocuments },
+    { label: "Start a claim from a rejection letter", done: hasClaim, onClick: onNewClaim },
+    { label: "Check government scheme eligibility", done: Boolean(schemes && schemes.length > 0), onClick: () => onNav("schemes") },
+  ];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Header: greeting + patient chip */}
@@ -98,8 +185,9 @@ export function HomeScreen({ patient, onNewClaim, onViewClaim, onAskPolicy, onVi
         </button>
       </div>
 
+      {patient && <SetupChecklist items={setupItems} />}
+
       <div className="grid gap-4 md:grid-cols-[1.2fr_1fr] md:gap-5">
-        {/* Primary: start your first claim */}
         <section
           style={{
             background: "var(--aayu-success-bg)",
@@ -111,18 +199,14 @@ export function HomeScreen({ patient, onNewClaim, onViewClaim, onAskPolicy, onVi
             gap: 12,
           }}
         >
-          <div className="aayu-text-h2" style={{ fontWeight: 500, color: "var(--aayu-teal-800)" }}>{hasClaim ? "Your claim assessment is ready" : "Start a claim"}</div>
-          <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>
-            {hasClaim
-              ? `Aayu found ₹${(claim?.assessment?.recoverable_amount ?? 0).toLocaleString("en-IN")} potentially recoverable. Review the assessment and appeal draft before sending.`
-              : "Upload a rejection letter and we&rsquo;ll read it, find the clause the insurer missed, and draft a clause-cited appeal."}
-          </div>
+          <div className="aayu-text-h2" style={{ fontWeight: 500, color: "var(--aayu-teal-800)" }}>{nextAction.title}</div>
+          <div className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>{nextAction.body}</div>
           <button
-            onClick={hasClaim ? onViewClaim : onNewClaim}
+            onClick={nextAction.onClick}
             className="primary-button"
             style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, alignSelf: "flex-start", padding: "12px 18px" }}
           >
-            <Icon name={hasClaim ? "claim" : "plus"} size={18} color="#fff" /> {hasClaim ? "View assessment" : "Fight a claim"}
+            <Icon name={nextAction.icon} size={18} color="#fff" /> {nextAction.label}
           </button>
         </section>
 
@@ -134,6 +218,10 @@ export function HomeScreen({ patient, onNewClaim, onViewClaim, onAskPolicy, onVi
               <QuickTile icon="schemes" value={matchedCount > 0 ? String(matchedCount) : "—"} title="Scheme matches" sub={matchedCount > 0 ? "May be eligible" : "No match yet"} onClick={() => onNav("schemes")} />
             </div>
           </div>
+          <button type="button" onClick={() => onNav("profile")} className="aayu-card text-left" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Icon name="profile" size={22} color="var(--aayu-teal-600)" />
+            <span><span className="aayu-text-body-sm block" style={{ fontWeight: 500, color: "var(--aayu-text-primary)" }}>Care profile {profileReady ? "ready" : "needs attention"}</span><span className="aayu-text-body-sm" style={{ color: "var(--aayu-text-secondary)" }}>{profileReady ? "Insurance, emergency, and care details are saved." : "Add the details that make claims and care safer."}</span></span>
+          </button>
           <button
             type="button"
             onClick={onAskPolicy}

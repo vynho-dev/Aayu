@@ -45,6 +45,7 @@ class Patient(Base):
     name: Mapped[str] = mapped_column(String(120))
     relationship: Mapped[str] = mapped_column(String(40))
     date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
+    profile: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

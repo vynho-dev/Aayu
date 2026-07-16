@@ -23,6 +23,16 @@ async def test_patient_consent_upload_and_job(client: AsyncClient) -> None:
     consent = await client.post(f"/v1/patients/{patient_id}/consent", json={"accepted": True})
     assert consent.status_code == 200
 
+    consent_status = await client.get(f"/v1/patients/{patient_id}/consent-status")
+    assert consent_status.json()["accepted"] is True
+
+    withdrawn = await client.delete(f"/v1/patients/{patient_id}/consent")
+    assert withdrawn.status_code == 204
+    withdrawn_status = await client.get(f"/v1/patients/{patient_id}/consent-status")
+    assert withdrawn_status.json()["accepted"] is False
+
+    await client.post(f"/v1/patients/{patient_id}/consent", json={"accepted": True})
+
     intent = await client.post(
         f"/v1/patients/{patient_id}/documents/upload-intent",
         json={
@@ -68,6 +78,23 @@ async def test_patient_profile_can_be_updated_by_its_owner(client: AsyncClient) 
         "name": "Raman Iyer",
         "relationship": "father",
         "date_of_birth": "1962-04-12",
+        "profile": {
+            "gender": None,
+            "blood_group": None,
+            "insurance_provider": None,
+            "insurance_policy_number": None,
+            "insurance_policy_expiry": None,
+            "medical_history": [],
+            "allergies": [],
+            "medications": [],
+            "chronic_conditions": [],
+            "consultation_history": [],
+            "emergency_contact_name": None,
+            "emergency_contact_relationship": None,
+            "emergency_contact_phone": None,
+            "preferred_hospital": None,
+            "preferred_doctor": None,
+        },
     }
 
     other_user = await client.put(
@@ -76,6 +103,36 @@ async def test_patient_profile_can_be_updated_by_its_owner(client: AsyncClient) 
         json={"name": "Changed", "relationship": "other", "date_of_birth": None},
     )
     assert other_user.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_patient_profile_keeps_structured_care_and_insurance_details(
+    client: AsyncClient,
+) -> None:
+    response = await client.post(
+        "/v1/patients",
+        json={
+            "name": "Amma",
+            "relationship": "mother",
+            "profile": {
+                "blood_group": "O+",
+                "insurance_provider": "Aayu Health",
+                "medical_history": ["Appendectomy, 2015"],
+                "allergies": ["Penicillin"],
+                "medications": ["Metformin 500 mg"],
+                "chronic_conditions": ["Diabetes"],
+                "consultation_history": ["2026-07-15 — Dr Rao — diabetes follow-up"],
+                "emergency_contact_name": "Ravi",
+                "preferred_hospital": "City Hospital",
+            },
+        },
+    )
+
+    assert response.status_code == 201
+    profile = response.json()["profile"]
+    assert profile["blood_group"] == "O+"
+    assert profile["allergies"] == ["Penicillin"]
+    assert profile["preferred_hospital"] == "City Hospital"
 
 
 @pytest.mark.asyncio

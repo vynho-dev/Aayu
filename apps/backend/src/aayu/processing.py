@@ -213,8 +213,10 @@ async def _upsert_health_record(session, document: Document, text: str) -> None:
     switch to incremental merge if a patient accumulates many documents.
     """
     patient_id = document.patient_id
+    patient = await session.get(Patient, patient_id)
     record = await session.scalar(select(HealthRecord).where(HealthRecord.patient_id == patient_id))
     stored = dict(record.data) if record is not None else {}
+    profile = patient.profile if patient is not None else {}
     docs = [d for d in stored.get("documents", []) if d.get("document_id") != str(document.id)]
     docs.append(
         {
@@ -232,13 +234,20 @@ async def _upsert_health_record(session, document: Document, text: str) -> None:
     data = {
         "documents": docs,  # keeps per-doc text for the next re-extraction; frontend ignores it
         "amounts": amounts,
-        "conditions": structured.get("conditions", stored.get("conditions", [])),
-        "medications": structured.get("medications", stored.get("medications", [])),
+        "conditions": list(dict.fromkeys([
+            *profile.get("chronic_conditions", []),
+            *structured.get("conditions", stored.get("conditions", [])),
+        ])),
+        "medications": list(dict.fromkeys([
+            *profile.get("medications", []),
+            *structured.get("medications", stored.get("medications", [])),
+        ])),
         "lab_findings": structured.get("lab_findings", stored.get("lab_findings", [])),
         "procedures": structured.get("procedures", stored.get("procedures", [])),
         "tests": structured.get("tests", stored.get("tests", [])),
         "follow_up": structured.get("follow_up", stored.get("follow_up", "")),
         "summary": structured.get("summary", stored.get("summary", "")),
+        "profile": profile,
     }
     if record is None:
         session.add(HealthRecord(patient_id=patient_id, data=data))
