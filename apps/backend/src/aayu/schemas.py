@@ -80,3 +80,31 @@ class AskQuestionResponse(BaseModel):
 class PolicyAnswerView(BaseModel):
     answer: str
     excerpts: list[str]
+
+
+class ClaimView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    status: str
+    assessment: dict | None
+    appeal_text: str | None
+    created_at: datetime
+
+
+class HealthRecordView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    data: dict
+    updated_at: datetime
+
+
+class SchemeMatchView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    scheme_code: str
+    explanation: str
+    matched: bool
+
+
+class PolicyDocumentView(BaseModel):
+    document_id: uuid.UUID
+    status: str
+    index_ready: bool

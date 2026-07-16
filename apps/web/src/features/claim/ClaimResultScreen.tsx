@@ -1,29 +1,7 @@
 import { useEffect, useState } from "react";
 
-import type { Patient } from "../../services/api";
+import { useClaimQuery, type Patient } from "../../services/api";
 import { Icon } from "../app/Icon";
-
-// ponytail: sample result — the backend has no AI worker yet (jobs never complete in dev, no Claim
-// rows are ever written). This makes the result UI real end-to-end; swap SAMPLE for a useClaimQuery
-// once the extraction/assessment pipeline lands. The "Sample" badge keeps it honest meanwhile.
-const SAMPLE = {
-  recoverable: 18400,
-  documentsRead: 3,
-  clause: "Sec. 4.2",
-  reason:
-    "The insurer cited a pre-existing condition exclusion that doesn't apply — the policy excludes it only after 12 months of continuous cover, and this policy is 14 months old.",
-};
-
-function appealText(name: string): string {
-  return `To the Claims Review Officer,
-
-I am writing to formally appeal the denial of the health insurance claim for ${name}. The rejection cited a pre-existing condition exclusion; however, per Section 4.2 of the policy, this exclusion lapses after 12 months of continuous cover. This policy has been active for 14 months.
-
-I request a full review and reversal of the denied amount of ₹18,400.
-
-Sincerely,
-${name}'s caregiver`;
-}
 
 function useCountUp(target: number, durationMs = 800): number {
   const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -41,7 +19,7 @@ function useCountUp(target: number, durationMs = 800): number {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [target, durationMs, reduceMotion]);
-  return value;
+  return reduceMotion ? target : value;
 }
 
 function downloadAppeal(name: string, text: string) {
@@ -63,34 +41,57 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
+function BackLink({ onBack }: { onBack: () => void }) {
+  return (
+    <button type="button" onClick={onBack} className="inline-flex items-center gap-1 text-sm font-medium text-[#0F6E56]">
+      ← Back to dashboard
+    </button>
+  );
+}
+
 export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: Patient | null; onViewHealth: () => void; onBack: () => void }) {
   const name = patient?.name ?? "the patient";
-  const amount = useCountUp(SAMPLE.recoverable);
-  const [letter, setLetter] = useState(() => appealText(name));
+  const { data: claim, isLoading, isError } = useClaimQuery(patient?.id ?? "", { skip: !patient?.id });
+  const assessment = claim?.assessment ?? null;
+  const amount = useCountUp(assessment?.recoverable_amount ?? 0);
+  // Derive from the server text; local edits override it. No effect-sync needed.
+  const [edited, setEdited] = useState<string | null>(null);
+  const letter = edited ?? claim?.appeal_text ?? "";
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-5">
+        <BackLink onBack={onBack} />
+        <section className="aayu-card" aria-live="polite">
+          <h1 className="text-2xl font-medium text-[#042C53]">Preparing your assessment…</h1>
+        </section>
+      </div>
+    );
+  }
+
+  if (isError || !claim || !assessment) {
+    return (
+      <div className="grid gap-5">
+        <BackLink onBack={onBack} />
+        <section className="aayu-card" aria-live="polite">
+          <h1 className="mb-2 text-2xl font-medium text-[#042C53]">No assessment yet</h1>
+          <p className="text-[#55706C]">We couldn&rsquo;t read a claim from the uploaded documents. Try uploading the rejection letter again.</p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <button type="button" onClick={onBack} className="inline-flex items-center gap-1 text-sm font-medium text-[#0F6E56]">
-        ← Back to dashboard
-      </button>
+      <BackLink onBack={onBack} />
 
-      {/* Honest label: this is placeholder content, not a real analysis of the uploaded document. */}
-      <div
-        style={{
-          display: "inline-flex",
-          alignSelf: "flex-start",
-          alignItems: "center",
-          gap: 6,
-          padding: "6px 12px",
-          borderRadius: "var(--radius-pill)",
-          background: "var(--aayu-attention-bg)",
-          color: "var(--aayu-attention)",
-          fontSize: 12,
-          fontWeight: 500,
-        }}
-      >
-        Sample assessment · Aayu&rsquo;s AI analysis isn&rsquo;t live yet
-      </div>
+      {assessment.source !== "llm" && (
+        <div
+          style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: "var(--radius-pill)", background: "var(--aayu-attention-bg)", color: "var(--aayu-attention)", fontSize: 12, fontWeight: 500 }}
+        >
+          Preliminary assessment · deeper AI analysis available with an API key
+        </div>
+      )}
 
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <Icon name="shield" size={14} color="var(--aayu-teal-600)" />
@@ -98,33 +99,23 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
       </div>
 
       <div>
-        <span
-          style={{
-            display: "inline-flex",
-            padding: "4px 10px",
-            borderRadius: "var(--radius-pill)",
-            background: "var(--aayu-attention-bg)",
-            color: "var(--aayu-attention)",
-            fontSize: 12,
-            fontWeight: 500,
-          }}
-        >
-          Contestable denial
+        <span style={{ display: "inline-flex", padding: "4px 10px", borderRadius: "var(--radius-pill)", background: assessment.contestable ? "var(--aayu-attention-bg)" : "var(--aayu-surface-muted)", color: assessment.contestable ? "var(--aayu-attention)" : "var(--aayu-text-secondary)", fontSize: 12, fontWeight: 500 }}>
+          {assessment.contestable ? "Contestable denial" : "Review needed"}
         </span>
         <div style={{ fontSize: 30, fontWeight: 500, color: "var(--aayu-teal-600)", marginTop: 10 }}>
           ₹{amount.toLocaleString("en-IN")} recoverable
         </div>
-        <div style={{ fontSize: 14, color: "var(--aayu-text-secondary)", marginTop: 4 }}>We found the clause the insurer missed.</div>
+        <div style={{ fontSize: 14, color: "var(--aayu-text-secondary)", marginTop: 4 }}>Based on the documents you uploaded.</div>
       </div>
 
       <div style={{ display: "flex", gap: 10 }}>
-        <Metric label="Documents read" value={String(SAMPLE.documentsRead)} />
-        <Metric label="Clause cited" value={SAMPLE.clause} />
+        <Metric label="Documents read" value={String(assessment.documents_read)} />
+        <Metric label="Clause cited" value={assessment.clause || "—"} />
       </div>
 
       <section style={{ background: "var(--aayu-surface-card)", border: "0.5px solid var(--aayu-border)", borderRadius: "var(--radius-md)", padding: "var(--space-5)" }}>
         <h2 style={{ fontSize: 16, fontWeight: 500, color: "var(--aayu-ink-900)", marginBottom: 8 }}>Likely reason for denial</h2>
-        <p style={{ fontSize: 14, color: "var(--aayu-text-secondary)", lineHeight: 1.6 }}>{SAMPLE.reason}</p>
+        <p style={{ fontSize: 14, color: "var(--aayu-text-secondary)", lineHeight: 1.6 }}>{assessment.reason}</p>
       </section>
 
       <section style={{ background: "var(--aayu-surface-card)", border: "0.5px solid var(--aayu-border)", borderRadius: "var(--radius-md)", padding: "var(--space-5)" }}>
@@ -134,31 +125,15 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
         </div>
         <textarea
           value={letter}
-          onChange={(event) => setLetter(event.target.value)}
+          onChange={(event) => setEdited(event.target.value)}
           aria-label="Appeal letter"
           rows={9}
-          style={{
-            width: "100%",
-            resize: "vertical",
-            border: "0.5px solid var(--aayu-border)",
-            borderRadius: "var(--radius-sm)",
-            padding: 12,
-            fontFamily: "var(--font-sans)",
-            fontSize: 14,
-            lineHeight: 1.6,
-            color: "var(--aayu-text-primary)",
-            background: "var(--aayu-surface-page)",
-          }}
+          style={{ width: "100%", resize: "vertical", border: "0.5px solid var(--aayu-border)", borderRadius: "var(--radius-sm)", padding: 12, fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.6, color: "var(--aayu-text-primary)", background: "var(--aayu-surface-page)" }}
         />
-        <button className="primary-button mt-3" onClick={() => downloadAppeal(name, letter)}>Download appeal letter</button>
+        <button className="primary-button mt-3" onClick={() => downloadAppeal(name, letter)} disabled={!letter}>Download appeal letter</button>
       </section>
 
-      <button
-        type="button"
-        onClick={onViewHealth}
-        className="aayu-card text-left"
-        style={{ display: "flex", alignItems: "center", gap: 12 }}
-      >
+      <button type="button" onClick={onViewHealth} className="aayu-card text-left" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <Icon name="health" size={20} color="var(--aayu-teal-600)" />
         <span>
           <span className="block font-medium text-[#123C3A]">View {name}&rsquo;s health record</span>

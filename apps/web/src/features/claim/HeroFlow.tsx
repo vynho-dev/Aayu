@@ -1,5 +1,5 @@
 import { UserButton } from "@clerk/react";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useState } from "react";
 
 import { useAppSelector } from "../../app/store";
 import {
@@ -13,10 +13,12 @@ import {
 } from "../../services/api";
 import type { Patient } from "../../services/api";
 import { AppShell, type Tab } from "../app/AppShell";
+import { HealthScreen, SchemesScreen } from "../app/TabScreens";
 import { HomeScreen } from "../home/HomeScreen";
+import { PolicyQAScreen } from "../policy/PolicyQAScreen";
 import { ClaimResultScreen } from "./ClaimResultScreen";
 
-type ClaimStep = "consent" | "upload" | "processing" | "result";
+type ClaimStep = "consent" | "upload" | "processing";
 
 const clerkActive = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
@@ -32,20 +34,12 @@ export function HeroFlow() {
   const [consented, setConsented] = useState(false);
   const [tab, setTab] = useState<Tab>("home");
   const [claimStep, setClaimStep] = useState<ClaimStep | null>(null);
+  const [qaOpen, setQaOpen] = useState(false);
   const [jobId, setJobId] = useState("");
   const [message, setMessage] = useState("");
   const { data: job } = useJobQuery(jobId, { skip: !jobId, pollingInterval: jobId ? 3000 : 0 });
 
   const patient = patients.find((p) => p.id === patientId) ?? null;
-
-  // Advance processing → result. Real backend jobs would flip to "completed"; in dev there is no
-  // worker (the queue is a no-op), so a short fallback drives the demo. Failures stay on the card.
-  useEffect(() => {
-    if (claimStep !== "processing" || job?.status === "failed") return;
-    const delay = job?.status === "completed" ? 0 : 2500;
-    const timer = window.setTimeout(() => setClaimStep("result"), delay);
-    return () => window.clearTimeout(timer);
-  }, [claimStep, job?.status]);
 
   async function addPatient(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -89,16 +83,19 @@ export function HeroFlow() {
 
   const startClaim = () => {
     setMessage("");
+    setQaOpen(false);
     setClaimStep(consented ? "upload" : "consent");
   };
 
   const backToHome = () => {
     setClaimStep(null);
+    setQaOpen(false);
     setJobId("");
     setTab("home");
   };
 
   const onNav = (id: Tab) => {
+    setQaOpen(false);
     if (id === "claim") return startClaim();
     setClaimStep(null);
     setTab(id);
@@ -140,8 +137,19 @@ export function HeroFlow() {
     );
   }
 
+  // Result is derived from the completed job — no separate state to keep in sync.
+  const showResult = claimStep === "processing" && job?.status === "completed";
+
   let content;
-  if (claimStep === "result") {
+  if (qaOpen) {
+    content = (
+      <PolicyQAScreen
+        patient={patient}
+        onBack={backToHome}
+        onNeedPolicy={() => { setQaOpen(false); startClaim(); }}
+      />
+    );
+  } else if (showResult) {
     content = (
       <ClaimResultScreen
         patient={patient}
@@ -164,9 +172,13 @@ export function HeroFlow() {
       />
     );
   } else if (tab === "home") {
-    content = <HomeScreen patient={patient} onNewClaim={startClaim} onNav={onNav} />;
+    content = <HomeScreen patient={patient} onNewClaim={startClaim} onAskPolicy={() => setQaOpen(true)} onNav={onNav} />;
+  } else if (tab === "health") {
+    content = <HealthScreen patient={patient} />;
+  } else if (tab === "schemes") {
+    content = <SchemesScreen patient={patient} />;
   } else {
-    content = <TabPlaceholder tab={tab} patient={patient} onSwitchPatient={() => setPatientId("")} />;
+    content = <ProfileScreen patient={patient} onSwitchPatient={() => setPatientId("")} />;
   }
 
   return (
@@ -233,32 +245,19 @@ function ClaimTask({ step, patient, job, message, consenting, uploading, onConse
   );
 }
 
-function TabPlaceholder({ tab, patient, onSwitchPatient }: { tab: Tab; patient: Patient | null; onSwitchPatient: () => void }) {
-  const name = patient?.name ?? "your family";
-  if (tab === "profile") {
-    return (
-      <section aria-labelledby="profile-title" className="grid gap-5">
-        <h1 id="profile-title" className="text-3xl font-medium text-[#042C53]">Profile</h1>
-        <div className="aayu-card grid gap-1">
-          <span className="font-medium text-[#123C3A]">{patient?.name ?? "Patient"}</span>
-          <span className="text-sm text-[#55706C]">{patient?.relationship ?? ""}</span>
-        </div>
-        <div className="aayu-card flex items-center gap-3">
-          {clerkActive ? <UserButton /> : null}
-          <span className="text-sm text-[#55706C]">{clerkActive ? "Manage your account or sign out" : "Development session"}</span>
-        </div>
-        <button type="button" onClick={onSwitchPatient} className="text-left text-sm font-medium text-[#0F6E56]">Switch patient</button>
-      </section>
-    );
-  }
-  const copy =
-    tab === "health"
-      ? `${name}'s health record starts here. It fills in automatically from the documents you upload with your first claim.`
-      : `No scheme matches yet. After your first claim we'll surface government benefits ${name} may be owed.`;
+function ProfileScreen({ patient, onSwitchPatient }: { patient: Patient | null; onSwitchPatient: () => void }) {
   return (
-    <section aria-labelledby="tab-title" className="grid gap-4">
-      <h1 id="tab-title" className="text-3xl font-medium text-[#042C53]">{tab === "health" ? "Health" : "Schemes"}</h1>
-      <div className="aayu-card text-[#55706C]">{copy}</div>
+    <section aria-labelledby="profile-title" className="grid gap-5">
+      <h1 id="profile-title" className="text-3xl font-medium text-[#042C53]">Profile</h1>
+      <div className="aayu-card grid gap-1">
+        <span className="font-medium text-[#123C3A]">{patient?.name ?? "Patient"}</span>
+        <span className="text-sm text-[#55706C]">{patient?.relationship ?? ""}</span>
+      </div>
+      <div className="aayu-card flex items-center gap-3">
+        {clerkActive ? <UserButton /> : null}
+        <span className="text-sm text-[#55706C]">{clerkActive ? "Manage your account or sign out" : "Development session"}</span>
+      </div>
+      <button type="button" onClick={onSwitchPatient} className="text-left text-sm font-medium text-[#0F6E56]">Switch patient</button>
     </section>
   );
 }

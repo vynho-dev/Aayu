@@ -19,6 +19,7 @@ from aayu.models import (
     User,
 )
 from aayu.modules.patients import owned_patient
+from aayu.processing import process_document_task
 from aayu.queue import publish_job
 from aayu.schemas import JobView, UploadIntentCreate, UploadIntentView
 from aayu.storage import upload_exists, upload_url, write_dev_upload
@@ -137,15 +138,23 @@ async def complete_upload(
     session.add(job)
     await session.commit()
     await session.refresh(job)
-    try:
-        publish_job(job.id)
-    except Exception as exc:
-        raise HTTPException(
-            status_code=503, detail="Processing is temporarily unavailable"
-        ) from exc
-    job.status = JobStatus.queued.value
-    await session.commit()
-    await session.refresh(job)
+    # With a real queue, hand off to the worker. Without one (dev), process inline as a
+    # BackgroundTask so uploads actually complete instead of sitting queued forever.
+    if get_settings().job_queue_url:
+        try:
+            publish_job(job.id)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=503, detail="Processing is temporarily unavailable"
+            ) from exc
+        job.status = JobStatus.queued.value
+        await session.commit()
+        await session.refresh(job)
+    else:
+        job.status = JobStatus.queued.value
+        await session.commit()
+        await session.refresh(job)
+        background_tasks.add_task(process_document_task, job.document_id)
     return job
 
 
