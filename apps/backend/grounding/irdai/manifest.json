@@ -1,0 +1,66 @@
+{
+  "irdai-protection-of-policyholders-2024": {
+    "source_path": "irdai-master-circular-policyholders-2024.pdf",
+    "format": "pdf"
+  },
+  "irdai-grievance-cell-ppgr-faq": {
+    "source_path": "irdai-grievance-cell-ppgr-faq.md",
+    "format": "web-text"
+  },
+  "irdai-ppgr-functions": {
+    "source_path": "irdai-ppgr-functions.md",
+    "format": "web-text"
+  },
+  "irdai-policyholder-complaint-form": {
+    "source_path": "irdai-policyholder-complaint-registration-form.pdf",
+    "format": "pdf"
+  },
+  "irdai-ombudsman": {
+    "source_path": "irdai-ombudsman.md",
+    "format": "web-text"
+  },
+  "cio-complaint-flow": {
+    "source_path": "cio-complaint-flow.md",
+    "format": "web-text"
+  },
+  "cio-ombudsman-rules-2017-amended-2023": {
+    "source_path": "cio-ombudsman-rules-2017-amended-2023.pdf",
+    "format": "pdf"
+  },
+  "cio-ombudsman-amendment-rules-2023": {
+    "source_path": "cio-ombudsman-amendment-rules-2023.pdf",
+    "format": "pdf"
+  },
+  "cio-specimen-complaint-form": {
+    "source_path": "cio-specimen-complaint-form.docx",
+    "format": "docx"
+  },
+  "cio-ombudsman-offices": {
+    "source_path": "cio-ombudsman-offices.md",
+    "format": "web-text"
+  },
+  "irdai-ayush-coverage-guidelines": {
+    "source_path": "irdai-ayush-coverage-guidelines.pdf",
+    "format": "pdf"
+  },
+  "irdai-pwd-hiv-aids-mental-illness-product-modification": {
+    "source_path": "irdai-pwd-hiv-mental-illness-modification.pdf",
+    "format": "pdf"
+  },
+  "irdai-health-insurance-regulations-2016": {
+    "source_path": "irdai-health-insurance-regulations-2016.pdf",
+    "format": "pdf"
+  },
+  "irdai-consumer-affairs-booklets": {
+    "source_path": "irdai-consumer-affairs-booklets.md",
+    "format": "web-text"
+  },
+  "irdai-insurance-products-regulations-2024": {
+    "source_path": "irdai-insurance-products-regulations-2024.pdf",
+    "format": "pdf"
+  },
+  "irdai-tpa-health-services-amendment-2019": {
+    "source_path": "irdai-tpa-health-services-amendment-2019.pdf",
+    "format": "pdf"
+  }
+}

@@ -49,3 +49,34 @@ class JobView(BaseModel):
     error_code: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class ClaimReferenceDocumentView(BaseModel):
+    id: str
+    title: str
+    publisher: str
+    document_format: str
+    official_url: str
+    scope: Literal["mvp", "ombudsman", "both"]
+    topics: tuple[str, ...]
+    use_in_aayu: str
+
+
+class AskQuestionRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=2000)
+
+
+class AnswerSourceView(BaseModel):
+    document_id: str
+    title: str
+    official_url: str
+
+
+class AskQuestionResponse(BaseModel):
+    answer: str
+    sources: list[AnswerSourceView]
+
+
+class PolicyAnswerView(BaseModel):
+    answer: str
+    excerpts: list[str]

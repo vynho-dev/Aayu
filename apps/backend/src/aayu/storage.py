@@ -38,3 +38,23 @@ def upload_exists(object_key: str) -> bool:
     except ClientError:
         return False
     return True
+
+
+def read_bytes(object_key: str) -> bytes:
+    settings = get_settings()
+    if not settings.document_bucket:
+        return (Path("/tmp/aayu-uploads") / object_key).read_bytes()
+    response = boto3.client("s3", region_name=settings.aws_region).get_object(
+        Bucket=settings.document_bucket, Key=object_key
+    )
+    return response["Body"].read()
+
+
+def write_bytes(object_key: str, body: bytes) -> None:
+    settings = get_settings()
+    if not settings.document_bucket:
+        write_dev_upload(object_key, body)
+        return
+    boto3.client("s3", region_name=settings.aws_region).put_object(
+        Bucket=settings.document_bucket, Key=object_key, Body=body
+    )

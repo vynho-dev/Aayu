@@ -6,10 +6,15 @@ requires-python = ">=3.12"
 dependencies = [
   "alembic>=1.14,<2",
   "boto3>=1.35,<2",
+  "faiss-cpu>=1.9,<2",
   "fastapi>=0.115,<1",
+  "openai>=1.50,<2",
+  "pdf2image>=1.17,<2",
   "psycopg[binary]>=3.2,<4",
   "pydantic-settings>=2.7,<3",
   "pyjwt[crypto]>=2.10,<3",
+  "pypdf>=5.1,<6",
+  "pytesseract>=0.3.13,<1",
   "sqlalchemy[asyncio]>=2.0.36,<3",
   "uvicorn[standard]>=0.34,<1",
 ]

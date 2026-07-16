@@ -19,6 +19,9 @@ apps/web/vite.config.d.ts
 .env.local
 *.log
 
+# Regenerable FAISS knowledge index (rebuild via scripts/build_knowledge_index.py)
+apps/backend/grounding/index/
+
 # AI coding assistant local skill installs (vendored by uipro, not project source)
 .claude/skills/
 .codex/skills/
