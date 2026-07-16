@@ -10,7 +10,7 @@ function statusStyle(status: string): { background: string; color: string } {
   return { background: "var(--aayu-surface-muted)", color: "var(--aayu-text-secondary)" };
 }
 
-export function DocumentsScreen({ patient, onBack, onAdd }: { patient: Patient | null; onBack: () => void; onAdd: () => void }) {
+export function DocumentsScreen({ patient, onBack, onAdd }: { patient: Patient | null; onBack: () => void; onAdd: (kind?: string) => void }) {
   const { data: documents = [], isLoading, isError, refetch } = useDocumentsQuery(patient?.id ?? "", {
     skip: !patient?.id,
     refetchOnMountOrArgChange: true,
@@ -42,7 +42,7 @@ export function DocumentsScreen({ patient, onBack, onAdd }: { patient: Patient |
       </button>
       <div className="flex items-center justify-between gap-3">
         <h1 id="documents-title" className="text-3xl font-medium text-[#042C53]">Documents</h1>
-        <button type="button" onClick={onAdd} className="primary-button inline-flex items-center gap-1.5" style={{ padding: "10px 16px" }}>
+        <button type="button" onClick={() => onAdd()} className="primary-button inline-flex items-center gap-1.5" style={{ padding: "10px 16px" }}>
           <Icon name="plus" size={16} color="#fff" /> Add a document
         </button>
       </div>
@@ -57,6 +57,18 @@ export function DocumentsScreen({ patient, onBack, onAdd }: { patient: Patient |
       )}
 
       {message && <div className="aayu-card text-[#A23D32]" role="alert">{message}</div>}
+
+      <div className="aayu-card grid gap-3">
+        <div>
+          <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Build a useful record</span>
+          <p className="mt-1 text-sm text-[#55706C]">Add the document you have now. Aayu links it to health evidence, claims, and policy questions.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            ["prescription", "Prescription"], ["lab_report", "Lab report"], ["discharge_summary", "Discharge summary"], ["insurance_document", "Insurance proof"], ["doctor_note", "Doctor voice note"],
+          ].map(([kind, label]) => <button key={kind} type="button" onClick={() => onAdd(kind)} className="secondary-button">Add {label}</button>)}
+        </div>
+      </div>
 
       {!isLoading && !isError && documents.length === 0 && (
         <div className="aayu-card text-[#55706C]">

@@ -7,9 +7,28 @@ export type Patient = {
   name: string;
   relationship: string;
   date_of_birth: string | null;
+  profile: PatientProfile;
 };
 
-export type PatientInput = Pick<Patient, "name" | "relationship" | "date_of_birth">;
+export type PatientProfile = {
+  gender: string | null;
+  blood_group: string | null;
+  insurance_provider: string | null;
+  insurance_policy_number: string | null;
+  insurance_policy_expiry: string | null;
+  medical_history: string[];
+  allergies: string[];
+  medications: string[];
+  chronic_conditions: string[];
+  consultation_history: string[];
+  emergency_contact_name: string | null;
+  emergency_contact_relationship: string | null;
+  emergency_contact_phone: string | null;
+  preferred_hospital: string | null;
+  preferred_doctor: string | null;
+};
+
+export type PatientInput = Omit<Patient, "id">;
 
 export type UploadIntent = {
   document_id: string;
@@ -17,6 +36,8 @@ export type UploadIntent = {
   method: "PUT";
   headers: Record<string, string>;
 };
+
+export type ConsentStatus = { accepted: boolean; accepted_at: string | null };
 
 export type ProcessingJob = {
   id: string;
@@ -135,6 +156,12 @@ export const api = createApi({
         body: { accepted: true },
       }),
     }),
+    consentStatus: build.query<ConsentStatus, string>({
+      query: (patientId) => `patients/${patientId}/consent-status`,
+    }),
+    withdrawConsent: build.mutation<void, string>({
+      query: (patientId) => ({ url: `patients/${patientId}/consent`, method: "DELETE" }),
+    }),
     createUploadIntent: build.mutation<
       UploadIntent,
       { patientId: string; filename: string; content_type: string; kind: string }
@@ -186,15 +213,19 @@ export const api = createApi({
         method: "PUT",
         body,
       }),
+      invalidatesTags: ["Scheme"],
     }),
     eligibilityMatches: build.query<EligibilityMatch[], string>({
       query: (patientId) => `patients/${patientId}/scheme-matches`,
+      providesTags: ["Scheme"],
     }),
   }),
 });
 
 export const {
   useAcceptConsentMutation,
+  useConsentStatusQuery,
+  useWithdrawConsentMutation,
   useCompleteUploadMutation,
   useCreatePatientMutation,
   useUpdatePatientMutation,
@@ -209,7 +240,7 @@ export const {
   useAskPolicyMutation,
   useDocumentsQuery,
   useSaveEligibilityProfileMutation,
-  useLazyEligibilityMatchesQuery,
+  useEligibilityMatchesQuery,
 } = api;
 
 export async function uploadFile(intent: UploadIntent, file: File, token: string | null) {

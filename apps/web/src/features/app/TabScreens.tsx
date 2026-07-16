@@ -1,8 +1,10 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
 
 import {
+  useDocumentsQuery,
+  useClaimQuery,
   useHealthQuery,
-  useLazyEligibilityMatchesQuery,
+  useEligibilityMatchesQuery,
   useSaveEligibilityProfileMutation,
   type EmploymentType,
   type Patient,
@@ -17,7 +19,7 @@ const EMPLOYMENT_LABELS: Record<EmploymentType, string> = {
   unemployed: "Unemployed",
 };
 
-function ScreenTitle({ children }: { children: string }) {
+function ScreenTitle({ children }: { children: ReactNode }) {
   return <h1 className="text-3xl font-medium text-[#042C53]">{children}</h1>;
 }
 
@@ -37,15 +39,28 @@ function ChipCard({ label, items }: { label: string; items?: string[] }) {
 
 export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | null; onViewDocuments: () => void }) {
   const { data, isLoading, isError, refetch } = useHealthQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data: documentList = [] } = useDocumentsQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data: claim } = useClaimQuery(patient?.id ?? "", { skip: !patient?.id });
   const name = patient?.name ?? "your family";
+  const profile = patient?.profile;
   const record = data?.data;
   const amountChips = record?.amounts?.map((amount) => `₹${amount.toLocaleString("en-IN")}`);
   const documents = record?.documents ?? [];
-  const hasHealthData = Boolean(record && (record.summary || record.conditions?.length || record.medications?.length || record.lab_findings?.length || record.procedures?.length || record.tests?.length || record.follow_up || documents.length));
+  const hasProfileData = Boolean(profile && (profile.blood_group || profile.medical_history.length || profile.allergies.length || profile.medications.length || profile.chronic_conditions.length || profile.preferred_hospital || profile.preferred_doctor));
+  const hasHealthData = Boolean(hasProfileData || (record && (record.summary || record.conditions?.length || record.medications?.length || record.lab_findings?.length || record.procedures?.length || record.tests?.length || record.follow_up || documents.length)));
+  const missingUploads = [
+    ["prescription", "a prescription"], ["lab_report", "a lab report"], ["discharge_summary", "a discharge summary"], ["insurance_document", "insurance proof"],
+  ].filter(([kind]) => !documentList.some((document) => document.kind === kind));
+  const conditions = [...new Set([...(profile?.chronic_conditions ?? []), ...(record?.conditions ?? [])])];
+  const medications = [...new Set([...(profile?.medications ?? []), ...(record?.medications ?? [])])];
+  const allergies = profile?.allergies ?? [];
 
   return (
     <section aria-labelledby="health-title" className="grid gap-4">
-      <ScreenTitle>Health</ScreenTitle>
+      <div>
+        <ScreenTitle>{name}&rsquo;s health</ScreenTitle>
+        <p className="mt-1 text-sm text-[#55706C]">Built from the care profile and documents you add.</p>
+      </div>
       {isLoading && <div className="aayu-card text-[#55706C]">Loading {name}&rsquo;s record…</div>}
       {isError && (
         <div className="aayu-card flex flex-wrap items-center justify-between gap-3 text-[#55706C]" role="alert">
@@ -61,6 +76,19 @@ export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | 
       )}
       {record && hasHealthData && (
         <>
+          <div className="grid grid-cols-3 gap-3">
+            {[['Conditions', conditions.length], ['Medicines', medications.length], ['Allergies', allergies.length]].map(([label, value]) => <div key={String(label)} className="aayu-card p-4"><span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">{label}</span><strong className="mt-1 block text-2xl font-medium text-[#123C3A]">{value}</strong></div>)}
+          </div>
+          <div className="aayu-card grid gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Care snapshot</span>
+            <p className="text-sm text-[#55706C]">
+              {[profile?.blood_group && `Blood group: ${profile.blood_group}`, profile?.preferred_doctor && `Doctor: ${profile.preferred_doctor}`, profile?.preferred_hospital && `Hospital: ${profile.preferred_hospital}`].filter(Boolean).join(" · ") || "Complete the profile so care preferences are available when you need them."}
+            </p>
+          </div>
+          <ChipCard label="Conditions" items={conditions} />
+          <ChipCard label="Known allergies" items={allergies} />
+          <ChipCard label="Current medicines" items={medications} />
+          <ChipCard label="Medical history" items={profile?.medical_history} />
           {record.summary && (
             <div className="aayu-card grid gap-1">
               <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Summary</span>
@@ -91,6 +119,20 @@ export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | 
               </div>
             ))}
           </div>
+          {missingUploads.length > 0 && (
+            <div className="aayu-card grid gap-3">
+              <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Suggested next steps</span>
+              <p className="text-sm text-[#55706C]">Add {missingUploads.map(([, label]) => label).join(", ")} to make this record more useful for treatment and claims.</p>
+              <button type="button" onClick={onViewDocuments} className="secondary-button w-fit">Review missing documents</button>
+            </div>
+          )}
+          <div className="grid gap-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">Recent timeline</span>
+            <div className="grid gap-3 border-l-2 border-[#C7D8D3] pl-4">
+              {claim?.assessment && <div><span className="text-xs text-[#8A8F8C]">Claim update</span><p className="text-sm font-medium text-[#123C3A]">Claim assessment ready</p><p className="text-sm text-[#55706C]">{claim.assessment.reason}</p></div>}
+              {documentList.slice(0, 4).map((document) => <div key={document.id}><span className="text-xs text-[#8A8F8C]">{new Date(document.created_at).toLocaleDateString("en-IN")}</span><p className="text-sm font-medium text-[#123C3A]">{KIND_LABELS[document.kind] ?? document.kind} added</p><p className="text-sm text-[#55706C]">{document.filename}</p></div>)}
+            </div>
+          </div>
         </>
       )}
     </section>
@@ -99,7 +141,7 @@ export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | 
 
 export function SchemesScreen({ patient }: { patient: Patient | null }) {
   const [saveProfile, profileState] = useSaveEligibilityProfileMutation();
-  const [fetchMatches, { data, isFetching: isMatching }] = useLazyEligibilityMatchesQuery();
+  const { data, isFetching: isMatching } = useEligibilityMatchesQuery(patient?.id ?? "", { skip: !patient?.id });
   const [error, setError] = useState("");
   const matches = data ?? [];
 
@@ -117,7 +159,6 @@ export function SchemesScreen({ patient }: { patient: Patient | null }) {
         has_disability: form.get("has_disability") === "on",
         is_pregnant_or_recent_mother: form.get("is_pregnant_or_recent_mother") === "on",
       }).unwrap();
-      await fetchMatches(patient.id).unwrap();
     } catch {
       setError("We couldn&rsquo;t check eligibility. Please try again.");
     }

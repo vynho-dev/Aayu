@@ -1,6 +1,7 @@
 export const DOC_KIND_OPTIONS = [
   { value: "rejection_letter", label: "Rejection letter" },
   { value: "policy", label: "Policy" },
+  { value: "insurance_document", label: "Insurance card or policy schedule" },
   { value: "bill", label: "Hospital bill" },
   { value: "discharge_summary", label: "Discharge summary" },
   { value: "lab_report", label: "Lab report" },

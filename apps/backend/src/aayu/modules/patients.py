@@ -39,7 +39,9 @@ async def create_patient(
     user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> Patient:
-    patient = Patient(user_id=user.id, **body.model_dump())
+    values = body.model_dump()
+    values["profile"] = body.profile.model_dump(mode="json")
+    patient = Patient(user_id=user.id, **values)
     session.add(patient)
     await session.commit()
     await session.refresh(patient)
@@ -55,6 +57,8 @@ async def update_patient(
 ) -> Patient:
     patient = await owned_patient(patient_id, user, session)
     for field, value in body.model_dump().items():
+        if field == "profile":
+            value = body.profile.model_dump(mode="json")
         setattr(patient, field, value)
     await session.commit()
     await session.refresh(patient)
