@@ -72,7 +72,7 @@ input[type="checkbox"], input[type="radio"] {
   min-height: 0;
   height: 18px;
   padding: 0;
-  accent-color: #0f6e56;
+  accent-color: var(--aayu-teal-600);
 }
 
 input:focus, select:focus, button:focus-visible {
