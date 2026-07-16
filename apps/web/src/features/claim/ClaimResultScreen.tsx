@@ -49,7 +49,7 @@ function BackLink({ onBack }: { onBack: () => void }) {
   );
 }
 
-export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: Patient | null; onViewHealth: () => void; onBack: () => void }) {
+export function ClaimResultScreen({ patient, onViewHealth, onBack, onNewClaim }: { patient: Patient | null; onViewHealth: () => void; onBack: () => void; onNewClaim: () => void }) {
   const name = patient?.name ?? "the patient";
   const { data: claim, isLoading, isError } = useClaimQuery(patient?.id ?? "", { skip: !patient?.id });
   const assessment = claim?.assessment ?? null;
@@ -76,6 +76,7 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
         <section className="aayu-card" aria-live="polite">
           <h1 className="aayu-text-h1 mb-2 font-medium text-(--aayu-ink-900)">No assessment yet</h1>
           <p className="aayu-text-body-sm text-(--aayu-text-secondary)">We couldn&rsquo;t read a claim from the uploaded documents. Try uploading the rejection letter again.</p>
+          <button type="button" className="primary-button mt-4" onClick={onNewClaim}>Upload a rejection letter</button>
         </section>
       </div>
     );
@@ -90,7 +91,7 @@ export function ClaimResultScreen({ patient, onViewHealth, onBack }: { patient: 
           className="aayu-text-caption"
           style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: "var(--radius-pill)", background: "var(--aayu-attention-bg)", color: "var(--aayu-attention)", fontWeight: 500 }}
         >
-          Preliminary assessment · deeper AI analysis available with an API key
+          Preliminary assessment · review the uploaded document before sending an appeal
         </div>
       )}
 

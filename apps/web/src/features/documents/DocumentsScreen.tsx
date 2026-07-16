@@ -1,4 +1,6 @@
-import { useDocumentsQuery, type Patient } from "../../services/api";
+import { useState } from "react";
+
+import { useCompleteUploadMutation, useDocumentsQuery, type Patient } from "../../services/api";
 import { Icon } from "../app/Icon";
 import { KIND_LABELS, statusLabel } from "./kinds";
 
@@ -9,10 +11,29 @@ function statusStyle(status: string): { background: string; color: string } {
 }
 
 export function DocumentsScreen({ patient, onBack, onAdd }: { patient: Patient | null; onBack: () => void; onAdd: () => void }) {
-  const { data: documents = [], isLoading } = useDocumentsQuery(patient?.id ?? "", {
+  const { data: documents = [], isLoading, isError, refetch } = useDocumentsQuery(patient?.id ?? "", {
     skip: !patient?.id,
     refetchOnMountOrArgChange: true,
   });
+  const [completeUpload, completeState] = useCompleteUploadMutation();
+  const [message, setMessage] = useState("");
+
+  async function refreshWhileProcessing() {
+    const result = await refetch();
+    if (result.data?.some((doc) => ["uploaded", "processing"].includes(doc.status))) {
+      window.setTimeout(() => { void refreshWhileProcessing(); }, 3000);
+    }
+  }
+
+  async function processDocument(documentId: string) {
+    setMessage("");
+    try {
+      await completeUpload(documentId).unwrap();
+      void refreshWhileProcessing();
+    } catch {
+      setMessage("We couldn’t start processing this document. Please try again.");
+    }
+  }
 
   return (
     <section aria-labelledby="documents-title" className="grid gap-4">
@@ -28,7 +49,16 @@ export function DocumentsScreen({ patient, onBack, onAdd }: { patient: Patient |
 
       {isLoading && <div className="aayu-card text-[#55706C]">Loading documents…</div>}
 
-      {!isLoading && documents.length === 0 && (
+      {isError && (
+        <div className="aayu-card flex flex-wrap items-center justify-between gap-3 text-[#55706C]" role="alert">
+          <span>We couldn&rsquo;t load the documents.</span>
+          <button type="button" className="secondary-button" onClick={() => void refetch()}>Try again</button>
+        </div>
+      )}
+
+      {message && <div className="aayu-card text-[#A23D32]" role="alert">{message}</div>}
+
+      {!isLoading && !isError && documents.length === 0 && (
         <div className="aayu-card text-[#55706C]">
           No documents yet. Add a rejection letter, policy, bill, lab report, or prescription — Aayu reads each one into {patient?.name ?? "your"}&rsquo;s health record.
         </div>
@@ -42,8 +72,15 @@ export function DocumentsScreen({ patient, onBack, onAdd }: { patient: Patient |
               {KIND_LABELS[doc.kind] ?? doc.kind} · {new Date(doc.created_at).toLocaleDateString("en-IN")}
             </span>
           </span>
-          <span className="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium" style={statusStyle(doc.status)}>
-            {statusLabel(doc.status)}
+          <span className="flex shrink-0 items-center gap-2">
+            <span className="rounded-full px-2.5 py-1 text-xs font-medium" style={statusStyle(doc.status)}>
+              {statusLabel(doc.status)}
+            </span>
+            {["uploaded", "failed"].includes(doc.status) && (
+              <button type="button" className="secondary-button" disabled={completeState.isLoading} onClick={() => void processDocument(doc.id)}>
+                {doc.status === "failed" ? "Retry" : "Process"}
+              </button>
+            )}
           </span>
         </div>
       ))}

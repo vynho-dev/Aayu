@@ -85,3 +85,35 @@ async def test_new_patient_has_an_empty_health_record(client: AsyncClient) -> No
     health = await client.get(f"/v1/patients/{patient.json()['id']}/health")
     assert health.status_code == 200
     assert health.json() == {"data": {}, "updated_at": None}
+
+
+@pytest.mark.asyncio
+async def test_failed_document_can_be_requeued(client: AsyncClient) -> None:
+    patient = await client.post("/v1/patients", json={"name": "Appa", "relationship": "father"})
+    patient_id = patient.json()["id"]
+    await client.post(f"/v1/patients/{patient_id}/consent", json={"accepted": True})
+    intent = await client.post(
+        f"/v1/patients/{patient_id}/documents/upload-intent",
+        json={
+            "filename": "claim.pdf",
+            "content_type": "application/pdf",
+            "kind": "rejection_letter",
+        },
+    )
+    upload = intent.json()
+    await client.put(
+        upload["upload_url"],
+        content=b"not a readable PDF",
+        headers={**upload["headers"], "X-Dev-User": "test_user"},
+    )
+    first = await client.post(f"/v1/documents/{upload['document_id']}/complete")
+    assert first.status_code == 202
+    job = await client.get(f"/v1/jobs/{first.json()['id']}")
+    assert job.json()["status"] == "failed"
+
+    retry = await client.post(f"/v1/documents/{upload['document_id']}/complete")
+    assert retry.status_code == 202
+    assert retry.json()["id"] == first.json()["id"]
+    assert retry.json()["status"] == "queued"
+    retried_job = await client.get(f"/v1/jobs/{first.json()['id']}")
+    assert retried_job.json()["status"] == "failed"

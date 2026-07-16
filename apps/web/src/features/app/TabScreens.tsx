@@ -1,4 +1,4 @@
-import { type FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 
 import {
   useHealthQuery,
@@ -36,23 +36,30 @@ function ChipCard({ label, items }: { label: string; items?: string[] }) {
 }
 
 export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | null; onViewDocuments: () => void }) {
-  const { data, isLoading, isError } = useHealthQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data, isLoading, isError, refetch } = useHealthQuery(patient?.id ?? "", { skip: !patient?.id });
   const name = patient?.name ?? "your family";
   const record = data?.data;
   const amountChips = record?.amounts?.map((amount) => `₹${amount.toLocaleString("en-IN")}`);
   const documents = record?.documents ?? [];
+  const hasHealthData = Boolean(record && (record.summary || record.conditions?.length || record.medications?.length || record.lab_findings?.length || record.procedures?.length || record.tests?.length || record.follow_up || documents.length));
 
   return (
     <section aria-labelledby="health-title" className="grid gap-4">
       <ScreenTitle>Health</ScreenTitle>
       {isLoading && <div className="aayu-card text-[#55706C]">Loading {name}&rsquo;s record…</div>}
-      {(isError || (!isLoading && !data)) && (
-        <div className="aayu-card text-[#55706C]">
-          {name}&rsquo;s health record starts here. It fills in automatically from the documents you
-          upload — claims, discharge summaries, lab reports, and prescriptions.
+      {isError && (
+        <div className="aayu-card flex flex-wrap items-center justify-between gap-3 text-[#55706C]" role="alert">
+          <span>We couldn&rsquo;t load {name}&rsquo;s health record.</span>
+          <button type="button" className="secondary-button" onClick={() => void refetch()}>Try again</button>
         </div>
       )}
-      {record && (
+      {!isLoading && !isError && !hasHealthData && (
+        <div className="aayu-card grid gap-3 text-[#55706C]">
+          <p>{name}&rsquo;s health record starts here. It fills in automatically from the documents you upload — claims, discharge summaries, lab reports, and prescriptions.</p>
+          <button type="button" onClick={onViewDocuments} className="primary-button w-fit">Add a document</button>
+        </div>
+      )}
+      {record && hasHealthData && (
         <>
           {record.summary && (
             <div className="aayu-card grid gap-1">
@@ -93,21 +100,27 @@ export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | 
 export function SchemesScreen({ patient }: { patient: Patient | null }) {
   const [saveProfile, profileState] = useSaveEligibilityProfileMutation();
   const [fetchMatches, { data, isFetching: isMatching }] = useLazyEligibilityMatchesQuery();
+  const [error, setError] = useState("");
   const matches = data ?? [];
 
   async function checkEligibility(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!patient) return;
+    setError("");
     const form = new FormData(event.currentTarget);
-    await saveProfile({
-      patientId: patient.id,
-      monthly_household_income: Number(form.get("monthly_household_income")),
-      employment_type: String(form.get("employment_type")) as EmploymentType,
-      has_bpl_or_antyodaya_ration_card: form.get("has_bpl_or_antyodaya_ration_card") === "on",
-      has_disability: form.get("has_disability") === "on",
-      is_pregnant_or_recent_mother: form.get("is_pregnant_or_recent_mother") === "on",
-    }).unwrap();
-    await fetchMatches(patient.id);
+    try {
+      await saveProfile({
+        patientId: patient.id,
+        monthly_household_income: Number(form.get("monthly_household_income")),
+        employment_type: String(form.get("employment_type")) as EmploymentType,
+        has_bpl_or_antyodaya_ration_card: form.get("has_bpl_or_antyodaya_ration_card") === "on",
+        has_disability: form.get("has_disability") === "on",
+        is_pregnant_or_recent_mother: form.get("is_pregnant_or_recent_mother") === "on",
+      }).unwrap();
+      await fetchMatches(patient.id).unwrap();
+    } catch {
+      setError("We couldn&rsquo;t check eligibility. Please try again.");
+    }
   }
 
   return (
@@ -153,6 +166,8 @@ export function SchemesScreen({ patient }: { patient: Patient | null }) {
       {(profileState.isLoading || isMatching) && (
         <div className="aayu-card text-[#55706C]">Checking eligibility…</div>
       )}
+
+      {error && <div className="aayu-card text-[#A23D32]" role="alert">{error}</div>}
 
       {data && !isMatching && matches.length === 0 && (
         <div className="aayu-card text-[#55706C]">No schemes matched based on these details.</div>

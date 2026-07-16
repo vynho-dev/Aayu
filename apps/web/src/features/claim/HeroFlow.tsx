@@ -43,6 +43,7 @@ export function HeroFlow() {
   const [uploadMode, setUploadMode] = useState<UploadMode>("claim");
   const [qaOpen, setQaOpen] = useState(false);
   const [docsOpen, setDocsOpen] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
   const [jobId, setJobId] = useState("");
   const [message, setMessage] = useState("");
   const [editingPatient, setEditingPatient] = useState<Patient | "new" | null>(null);
@@ -81,9 +82,14 @@ export function HeroFlow() {
   }
 
   async function consent() {
-    await acceptConsent(patientId).unwrap();
-    setConsented(true);
-    setClaimStep("upload");
+    setMessage("");
+    try {
+      await acceptConsent(patientId).unwrap();
+      setConsented(true);
+      setClaimStep("upload");
+    } catch {
+      setMessage("We couldn&rsquo;t save your consent. Please try again.");
+    }
   }
 
   async function submitDocuments(event: FormEvent<HTMLFormElement>) {
@@ -113,6 +119,7 @@ export function HeroFlow() {
     setUploadMode(mode);
     setQaOpen(false);
     setDocsOpen(false);
+    setClaimOpen(false);
     setClaimStep(consented ? "upload" : "consent");
   };
   const startClaim = () => launchUpload("claim");
@@ -121,6 +128,7 @@ export function HeroFlow() {
     setClaimStep(null);
     setQaOpen(false);
     setDocsOpen(false);
+    setClaimOpen(false);
     setJobId("");
     setTab("home");
   };
@@ -134,6 +142,7 @@ export function HeroFlow() {
   const onNav = (id: Tab) => {
     setQaOpen(false);
     setDocsOpen(false);
+    setClaimOpen(false);
     if (id === "claim") return startClaim();
     setClaimStep(null);
     setTab(id);
@@ -185,12 +194,13 @@ export function HeroFlow() {
     );
   } else if (docsOpen) {
     content = <DocumentsScreen patient={patient} onBack={backToHome} onAdd={() => launchUpload("document")} />;
-  } else if (showResult) {
+  } else if (showResult || claimOpen) {
     content = (
       <ClaimResultScreen
         patient={patient}
-        onViewHealth={() => { setClaimStep(null); setJobId(""); setTab("health"); }}
+        onViewHealth={() => { setClaimOpen(false); setClaimStep(null); setJobId(""); setTab("health"); }}
         onBack={backToHome}
+        onNewClaim={startClaim}
       />
     );
   } else if (claimStep) {
@@ -207,10 +217,18 @@ export function HeroFlow() {
         onSubmit={submitDocuments}
         onBack={backToHome}
         onDone={uploadDone}
+        onRetry={() => launchUpload(uploadMode)}
       />
     );
   } else if (tab === "home") {
-    content = <HomeScreen patient={patient} onNewClaim={startClaim} onAskPolicy={() => setQaOpen(true)} onViewDocuments={() => setDocsOpen(true)} onNav={onNav} />;
+    content = <HomeScreen
+      patient={patient}
+      onNewClaim={startClaim}
+      onViewClaim={() => setClaimOpen(true)}
+      onAskPolicy={() => setQaOpen(true)}
+      onViewDocuments={() => setDocsOpen(true)}
+      onNav={onNav}
+    />;
   } else if (tab === "health") {
     content = <HealthScreen patient={patient} onViewDocuments={() => setDocsOpen(true)} />;
   } else if (tab === "schemes") {
@@ -259,9 +277,10 @@ type ClaimTaskProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onBack: () => void;
   onDone: () => void;
+  onRetry: () => void;
 };
 
-function ClaimTask({ step, mode, patient, job, message, consenting, uploading, onConsent, onSubmit, onBack, onDone }: ClaimTaskProps) {
+function ClaimTask({ step, mode, patient, job, message, consenting, uploading, onConsent, onSubmit, onBack, onDone, onRetry }: ClaimTaskProps) {
   const isClaim = mode === "claim";
   const completed = job?.status === "completed";
   const failed = job?.status === "failed";
@@ -279,6 +298,7 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
             Aayu will securely process these documents to assess claims and build{" "}
             {patient?.name ?? "this patient"}&rsquo;s health record. We won&rsquo;t use them for advertising.
           </p>
+          {message && <p role="alert" className="aayu-text-body-sm mb-4 text-(--aayu-danger)">{message}</p>}
           <button className="primary-button" onClick={onConsent} disabled={consenting}>I understand, continue</button>
         </section>
       )}
@@ -333,6 +353,7 @@ function ClaimTask({ step, mode, patient, job, message, consenting, uploading, o
           {completed && !isClaim && (
             <button type="button" onClick={onDone} className="primary-button mt-6">View documents</button>
           )}
+          {failed && <button type="button" onClick={onRetry} className="primary-button mt-6">Try another file</button>}
         </>
       )}
     </div>
