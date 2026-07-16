@@ -50,6 +50,12 @@ label {
   font-weight: 500;
 }
 
+/* Tailwind utilities live in @layer utilities, which unlayered CSS above always beats
+   regardless of specificity — this unlayered override lets label.flex opt out of the grid. */
+label.flex {
+  display: flex;
+}
+
 input, select {
   width: 100%;
   min-height: var(--tap-target);
@@ -59,6 +65,14 @@ input, select {
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-body-size);
   color: var(--aayu-text-primary);
+}
+
+input[type="checkbox"], input[type="radio"] {
+  width: 18px;
+  min-height: 0;
+  height: 18px;
+  padding: 0;
+  accent-color: var(--aayu-teal-600);
 }
 
 input:focus, select:focus, button:focus-visible {

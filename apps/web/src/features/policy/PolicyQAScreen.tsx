@@ -1,9 +1,41 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import { useAskPolicyMutation, usePolicyDocumentQuery, type Patient } from "../../services/api";
 import { Icon } from "../app/Icon";
 
 type Message = { from: "user" | "ai" | "error"; text: string; excerpts?: string[] };
+
+/** Renders the LLM's prose (bold, bullet/numbered lists, paragraphs) without a markdown dependency. */
+function renderInline(text: string, keyPrefix: string): ReactNode[] {
+  return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+    i % 2 === 1 ? <strong key={`${keyPrefix}-${i}`}>{part}</strong> : part
+  );
+}
+
+function renderMarkdownLite(text: string): ReactNode {
+  return text.trim().split(/\n\s*\n/).map((block, i) => {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+    if (lines.length > 0 && lines.every((line) => /^[-*]\s/.test(line))) {
+      return (
+        <ul key={i} style={{ margin: i === 0 ? 0 : "8px 0 0", paddingLeft: 20 }}>
+          {lines.map((line, j) => <li key={j}>{renderInline(line.replace(/^[-*]\s/, ""), `${i}-${j}`)}</li>)}
+        </ul>
+      );
+    }
+    if (lines.length > 0 && lines.every((line) => /^\d+\.\s/.test(line))) {
+      return (
+        <ol key={i} style={{ margin: i === 0 ? 0 : "8px 0 0", paddingLeft: 20 }}>
+          {lines.map((line, j) => <li key={j}>{renderInline(line.replace(/^\d+\.\s/, ""), `${i}-${j}`)}</li>)}
+        </ol>
+      );
+    }
+    return (
+      <p key={i} style={{ margin: i === 0 ? 0 : "8px 0 0", whiteSpace: "pre-wrap" }}>
+        {renderInline(block, `${i}`)}
+      </p>
+    );
+  });
+}
 
 export function PolicyQAScreen({ patient, onBack, onNeedPolicy }: { patient: Patient | null; onBack: () => void; onNeedPolicy: () => void }) {
   const { data: policy, isLoading, isError } = usePolicyDocumentQuery(patient?.id ?? "", { skip: !patient?.id });
@@ -65,12 +97,12 @@ export function PolicyQAScreen({ patient, onBack, onNeedPolicy }: { patient: Pat
                   lineHeight: 1.6,
                 }}
               >
-                <div className="whitespace-pre-wrap">{message.text}</div>
+                <div>{renderMarkdownLite(message.text)}</div>
                 {message.excerpts && message.excerpts.length > 0 && (
                   <details className="mt-2 text-xs text-[#55706C]">
                     <summary className="cursor-pointer">From your policy</summary>
                     {message.excerpts.map((excerpt, j) => (
-                      <p key={j} className="mt-1 border-l-2 border-[#E4E2DA] pl-2 italic">{excerpt}</p>
+                      <div key={j} className="mt-1 border-l-2 border-[#E4E2DA] pl-2 italic">{renderMarkdownLite(excerpt)}</div>
                     ))}
                   </details>
                 )}

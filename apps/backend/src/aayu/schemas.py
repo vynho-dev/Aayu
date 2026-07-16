@@ -139,3 +139,29 @@ class DocumentSummaryView(BaseModel):
     filename: str
     status: str
     created_at: datetime
+
+
+EmploymentType = Literal[
+    "government_employee_or_pensioner",
+    "organized_sector_employee",
+    "unorganized_sector_or_self_employed",
+    "farmer",
+    "unemployed",
+]
+
+
+class EligibilityProfileInput(BaseModel):
+    monthly_household_income: float = Field(ge=0)
+    employment_type: EmploymentType
+    has_bpl_or_antyodaya_ration_card: bool = False
+    has_disability: bool = False
+    is_pregnant_or_recent_mother: bool = False
+
+
+class EligibilityMatchView(BaseModel):
+    scheme_code: str
+    name: str
+    authority: str
+    benefit_summary: str
+    official_url: str
+    explanation: str

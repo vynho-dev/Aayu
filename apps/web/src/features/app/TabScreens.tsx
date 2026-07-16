@@ -1,10 +1,20 @@
-import { useHealthQuery, useSchemesQuery, type Patient } from "../../services/api";
+import { type FormEvent } from "react";
+
+import {
+  useHealthQuery,
+  useLazyEligibilityMatchesQuery,
+  useSaveEligibilityProfileMutation,
+  type EmploymentType,
+  type Patient,
+} from "../../services/api";
 import { KIND_LABELS } from "../documents/kinds";
 
-const SCHEME_LABELS: Record<string, string> = {
-  "PM-JAY": "Ayushman Bharat (PM-JAY)",
-  "STATE-HEALTH-SCHEME": "State health scheme",
-  "CM-RELIEF-FUND": "Chief Minister's Relief Fund",
+const EMPLOYMENT_LABELS: Record<EmploymentType, string> = {
+  government_employee_or_pensioner: "Government employee or pensioner",
+  organized_sector_employee: "Organized-sector employee",
+  unorganized_sector_or_self_employed: "Unorganized sector / self-employed",
+  farmer: "Farmer",
+  unemployed: "Unemployed",
 };
 
 function ScreenTitle({ children }: { children: string }) {
@@ -81,35 +91,82 @@ export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | 
 }
 
 export function SchemesScreen({ patient }: { patient: Patient | null }) {
-  const { data, isLoading, isError } = useSchemesQuery(patient?.id ?? "", { skip: !patient?.id });
-  const name = patient?.name ?? "your family";
+  const [saveProfile, profileState] = useSaveEligibilityProfileMutation();
+  const [fetchMatches, { data, isFetching: isMatching }] = useLazyEligibilityMatchesQuery();
   const matches = data ?? [];
+
+  async function checkEligibility(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!patient) return;
+    const form = new FormData(event.currentTarget);
+    await saveProfile({
+      patientId: patient.id,
+      monthly_household_income: Number(form.get("monthly_household_income")),
+      employment_type: String(form.get("employment_type")) as EmploymentType,
+      has_bpl_or_antyodaya_ration_card: form.get("has_bpl_or_antyodaya_ration_card") === "on",
+      has_disability: form.get("has_disability") === "on",
+      is_pregnant_or_recent_mother: form.get("is_pregnant_or_recent_mother") === "on",
+    }).unwrap();
+    await fetchMatches(patient.id);
+  }
+
   return (
     <section aria-labelledby="schemes-title" className="grid gap-4">
       <ScreenTitle>Schemes</ScreenTitle>
-      {isLoading && <div className="aayu-card text-[#55706C]">Checking eligibility…</div>}
-      {(isError || (!isLoading && matches.length === 0)) && (
-        <div className="aayu-card text-[#55706C]">
-          No scheme matches yet. After your first claim we&rsquo;ll surface government benefits {name} may
-          be owed.
+      <p className="text-sm leading-relaxed text-[#55706C]">
+        A few details to check eligibility for government health schemes. This stays with the patient&rsquo;s
+        record and isn&rsquo;t shared outside Aayu.
+      </p>
+
+      <form className="aayu-card grid gap-5" onSubmit={checkEligibility}>
+        <label>
+          Monthly household income (INR)
+          <input required name="monthly_household_income" type="number" min={0} />
+        </label>
+        <label>
+          Employment type
+          <select required name="employment_type" defaultValue="unorganized_sector_or_self_employed">
+            {Object.entries(EMPLOYMENT_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </label>
+        <div className="grid gap-2">
+          <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
+            Has a BPL or Antyodaya ration card
+            <input name="has_bpl_or_antyodaya_ration_card" type="checkbox" className="shrink-0" />
+          </label>
+          <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
+            Has a disability
+            <input name="has_disability" type="checkbox" className="shrink-0" />
+          </label>
+          <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
+            Pregnant or a recent mother
+            <input name="is_pregnant_or_recent_mother" type="checkbox" className="shrink-0" />
+          </label>
         </div>
+        <button className="primary-button" disabled={!patient || profileState.isLoading || isMatching}>
+          Check eligibility
+        </button>
+      </form>
+
+      {(profileState.isLoading || isMatching) && (
+        <div className="aayu-card text-[#55706C]">Checking eligibility…</div>
       )}
+
+      {data && !isMatching && matches.length === 0 && (
+        <div className="aayu-card text-[#55706C]">No schemes matched based on these details.</div>
+      )}
+
       {matches.map((scheme) => (
         <div key={scheme.scheme_code} className="aayu-card grid gap-2">
-          <div className="flex items-center justify-between gap-3">
-            <span className="font-medium text-[#123C3A]">{SCHEME_LABELS[scheme.scheme_code] ?? scheme.scheme_code}</span>
-            <span
-              className="rounded-full px-2.5 py-1 text-xs font-medium"
-              style={
-                scheme.matched
-                  ? { background: "var(--aayu-success-bg)", color: "var(--aayu-teal-800)" }
-                  : { background: "var(--aayu-surface-muted)", color: "var(--aayu-text-secondary)" }
-              }
-            >
-              {scheme.matched ? "May be eligible" : "Worth checking"}
-            </span>
-          </div>
+          <span className="font-medium text-[#123C3A]">{scheme.name}</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">{scheme.authority}</span>
+          <p className="text-sm leading-relaxed text-[#55706C]">{scheme.benefit_summary}</p>
           <p className="text-sm leading-relaxed text-[#55706C]">{scheme.explanation}</p>
+          <a className="text-sm font-medium text-[#0F6E56] underline" href={scheme.official_url} target="_blank" rel="noreferrer">
+            Official source
+          </a>
         </div>
       ))}
     </section>
