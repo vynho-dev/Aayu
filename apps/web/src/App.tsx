@@ -1,8 +1,9 @@
-import { SignIn, useAuth } from "@clerk/react";
+import { useAuth } from "@clerk/react";
 import { useEffect } from "react";
 
 import { enableDevelopmentIdentity, setSessionToken } from "./app/authSlice";
 import { useAppDispatch, useAppSelector } from "./app/store";
+import { SignInScreen } from "./features/auth/SignInScreen";
 import { HeroFlow } from "./features/claim/HeroFlow";
 
 export function DevelopmentApp() {
@@ -23,7 +24,7 @@ export function ClerkApp() {
     return () => { active = false; window.clearInterval(timer); };
   }, [dispatch, getToken, isSignedIn]);
   if (!isLoaded) return <main className="p-8">Preparing your secure session…</main>;
-  if (!isSignedIn) return <main className="grid min-h-screen place-items-center px-4"><SignIn /></main>;
+  if (!isSignedIn) return <SignInScreen />;
   return <ReadyApp />;
 }
 
