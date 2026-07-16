@@ -1,4 +1,4 @@
-import type { Patient } from "../../services/api";
+import { useHealthQuery, useSchemesQuery, type Patient } from "../../services/api";
 import { Icon, type IconName } from "../app/Icon";
 import type { Tab } from "../app/AppShell";
 
@@ -45,8 +45,11 @@ function QuickTile({ icon, title, value, sub, onClick }: { icon: IconName; title
   );
 }
 
-export function HomeScreen({ patient, onNewClaim, onNav }: { patient: Patient | null; onNewClaim: () => void; onNav: (id: Tab) => void }) {
+export function HomeScreen({ patient, onNewClaim, onAskPolicy, onNav }: { patient: Patient | null; onNewClaim: () => void; onAskPolicy: () => void; onNav: (id: Tab) => void }) {
   const name = patient?.name ?? "your family";
+  const { data: health } = useHealthQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data: schemes } = useSchemesQuery(patient?.id ?? "", { skip: !patient?.id });
+  const matchedCount = schemes?.filter((s) => s.matched).length ?? 0;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Header: greeting + patient chip */}
@@ -121,10 +124,22 @@ export function HomeScreen({ patient, onNewClaim, onNav }: { patient: Patient | 
           <div>
             <SectionLabel>Quick access</SectionLabel>
             <div style={{ display: "flex", gap: 12 }}>
-              <QuickTile icon="health" value="—" title="Health records" sub="Nothing yet" onClick={() => onNav("health")} />
-              <QuickTile icon="schemes" value="—" title="Scheme cover" sub="No match yet" onClick={() => onNav("schemes")} />
+              <QuickTile icon="health" value={health ? "Ready" : "—"} title="Health record" sub={health ? "Extracted" : "Nothing yet"} onClick={() => onNav("health")} />
+              <QuickTile icon="schemes" value={matchedCount > 0 ? String(matchedCount) : "—"} title="Scheme matches" sub={matchedCount > 0 ? "May be eligible" : "No match yet"} onClick={() => onNav("schemes")} />
             </div>
           </div>
+          <button
+            type="button"
+            onClick={onAskPolicy}
+            className="aayu-card text-left"
+            style={{ display: "flex", alignItems: "center", gap: 12 }}
+          >
+            <Icon name="chat" size={22} color="var(--aayu-teal-600)" />
+            <span>
+              <span className="block font-medium text-[#123C3A]">Ask about my policy</span>
+              <span className="text-sm text-[#55706C]">Plain-language answers from your uploaded policy.</span>
+            </span>
+          </button>
           <div>
             <SectionLabel>Recent activity</SectionLabel>
             <div

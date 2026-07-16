@@ -23,6 +23,34 @@ export type ProcessingJob = {
   error_code: string | null;
 };
 
+export type ClaimAssessment = {
+  reason: string;
+  contestable: boolean;
+  recoverable_amount: number;
+  documents_read: number;
+  clause?: string | null;
+  source: string;
+};
+
+export type ClaimResult = {
+  id: string;
+  status: string;
+  assessment: ClaimAssessment | null;
+  appeal_text: string | null;
+  created_at: string;
+};
+
+export type HealthRecord = {
+  data: { summary?: string; amounts?: number[]; extracted_chars?: number };
+  updated_at: string;
+};
+
+export type SchemeMatch = { scheme_code: string; explanation: string; matched: boolean };
+
+export type PolicyDocument = { document_id: string; status: string; index_ready: boolean };
+
+export type PolicyAnswer = { answer: string; excerpts: string[] };
+
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 export const api = createApi({
@@ -36,7 +64,7 @@ export const api = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Patient", "Job"],
+  tagTypes: ["Patient", "Job", "Claim", "Health", "Scheme", "Policy"],
   endpoints: (build) => ({
     patients: build.query<Patient[], void>({
       query: () => "patients",
@@ -71,6 +99,29 @@ export const api = createApi({
       query: (jobId) => `jobs/${jobId}`,
       providesTags: ["Job"],
     }),
+    claim: build.query<ClaimResult, string>({
+      query: (patientId) => `patients/${patientId}/claim`,
+      providesTags: ["Claim"],
+    }),
+    health: build.query<HealthRecord, string>({
+      query: (patientId) => `patients/${patientId}/health`,
+      providesTags: ["Health"],
+    }),
+    schemes: build.query<SchemeMatch[], string>({
+      query: (patientId) => `patients/${patientId}/schemes`,
+      providesTags: ["Scheme"],
+    }),
+    policyDocument: build.query<PolicyDocument, string>({
+      query: (patientId) => `patients/${patientId}/policy-document`,
+      providesTags: ["Policy"],
+    }),
+    askPolicy: build.mutation<PolicyAnswer, { patientId: string; documentId: string; question: string }>({
+      query: ({ patientId, documentId, question }) => ({
+        url: `patients/${patientId}/documents/${documentId}/policy-chat`,
+        method: "POST",
+        body: { question },
+      }),
+    }),
   }),
 });
 
@@ -81,6 +132,11 @@ export const {
   useCreateUploadIntentMutation,
   useJobQuery,
   usePatientsQuery,
+  useClaimQuery,
+  useHealthQuery,
+  useSchemesQuery,
+  usePolicyDocumentQuery,
+  useAskPolicyMutation,
 } = api;
 
 export async function uploadFile(intent: UploadIntent, file: File, token: string | null) {

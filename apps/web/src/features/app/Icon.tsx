@@ -9,7 +9,8 @@ export type IconName =
   | "profile"
   | "shield"
   | "chevron"
-  | "plus";
+  | "plus"
+  | "chat";
 
 const paths: Record<IconName, ReactNode> = {
   home: (
@@ -53,6 +54,7 @@ const paths: Record<IconName, ReactNode> = {
     </>
   ),
   chevron: <path d="m6 9 6 6 6-6" />,
+  chat: <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" />,
   plus: (
     <>
       <path d="M12 5v14" />
