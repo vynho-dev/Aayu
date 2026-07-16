@@ -71,6 +71,30 @@ export type PolicyDocument = { document_id: string; status: string; index_ready:
 
 export type PolicyAnswer = { answer: string; excerpts: string[] };
 
+export type EmploymentType =
+  | "government_employee_or_pensioner"
+  | "organized_sector_employee"
+  | "unorganized_sector_or_self_employed"
+  | "farmer"
+  | "unemployed";
+
+export type EligibilityProfileInput = {
+  monthly_household_income: number;
+  employment_type: EmploymentType;
+  has_bpl_or_antyodaya_ration_card: boolean;
+  has_disability: boolean;
+  is_pregnant_or_recent_mother: boolean;
+};
+
+export type EligibilityMatch = {
+  scheme_code: string;
+  name: string;
+  authority: string;
+  benefit_summary: string;
+  official_url: string;
+  explanation: string;
+};
+
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 export const api = createApi({
@@ -146,6 +170,16 @@ export const api = createApi({
         body: { question },
       }),
     }),
+    saveEligibilityProfile: build.mutation<void, { patientId: string } & EligibilityProfileInput>({
+      query: ({ patientId, ...body }) => ({
+        url: `patients/${patientId}/eligibility-profile`,
+        method: "PUT",
+        body,
+      }),
+    }),
+    eligibilityMatches: build.query<EligibilityMatch[], string>({
+      query: (patientId) => `patients/${patientId}/scheme-matches`,
+    }),
   }),
 });
 
@@ -162,6 +196,8 @@ export const {
   usePolicyDocumentQuery,
   useAskPolicyMutation,
   useDocumentsQuery,
+  useSaveEligibilityProfileMutation,
+  useLazyEligibilityMatchesQuery,
 } = api;
 
 export async function uploadFile(intent: UploadIntent, file: File, token: string | null) {
