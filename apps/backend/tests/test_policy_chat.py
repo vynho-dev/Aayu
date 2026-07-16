@@ -96,10 +96,9 @@ def test_ask_raises_on_document_with_no_extractable_text(
     object_key = f"patients/{patient_id}/documents/{document_id}.txt"
     fake_object_store[object_key] = b"   "
 
+    client = _FakeOpenAI(_keyword_vector)
     with pytest.raises(ValueError):
-        policy_chat.ask(
-            patient_id, document_id, object_key, "What is covered?", client=_FakeOpenAI(_keyword_vector)
-        )
+        policy_chat.ask(patient_id, document_id, object_key, "What is covered?", client=client)
 
 
 @pytest.mark.asyncio
@@ -140,7 +139,7 @@ async def test_complete_upload_triggers_policy_index_build_in_background(
 async def test_complete_upload_skips_non_policy_documents(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    calls: list[tuple] = []
+    calls: list[bool] = []
     monkeypatch.setattr(
         policy_chat,
         "build_policy_index",

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal
 
-
 ReferenceScope = Literal["mvp", "ombudsman", "both"]
 
 
@@ -221,7 +220,10 @@ CLAIM_REFERENCE_DOCUMENTS: tuple[ClaimReferenceDocument, ...] = (
     ),
     ClaimReferenceDocument(
         id="irdai-insurance-products-regulations-2024",
-        title="Insurance Regulatory and Development Authority of India (Insurance Products) Regulations, 2024",
+        title=(
+            "Insurance Regulatory and Development Authority of India "
+            "(Insurance Products) Regulations, 2024"
+        ),
         publisher="Insurance Regulatory and Development Authority of India",
         document_format="PDF",
         official_url="https://irdai.gov.in/updated-regulations",
