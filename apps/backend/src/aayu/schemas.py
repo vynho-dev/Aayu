@@ -116,7 +116,7 @@ class ClaimView(BaseModel):
 class HealthRecordView(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     data: dict
-    updated_at: datetime
+    updated_at: datetime | None
 
 
 class SchemeMatchView(BaseModel):

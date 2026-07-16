@@ -48,3 +48,40 @@ async def test_patient_consent_upload_and_job(client: AsyncClient) -> None:
     job = await client.get(f"/v1/jobs/{completed.json()['id']}")
     assert job.status_code == 200
     assert job.json()["document_id"] == upload["document_id"]
+
+
+@pytest.mark.asyncio
+async def test_patient_profile_can_be_updated_by_its_owner(client: AsyncClient) -> None:
+    created = await client.post(
+        "/v1/patients",
+        json={"name": "Appa", "relationship": "father", "date_of_birth": "1962-04-12"},
+    )
+    assert created.status_code == 201
+
+    updated = await client.put(
+        f"/v1/patients/{created.json()['id']}",
+        json={"name": "Raman Iyer", "relationship": "father", "date_of_birth": "1962-04-12"},
+    )
+    assert updated.status_code == 200
+    assert updated.json() == {
+        "id": created.json()["id"],
+        "name": "Raman Iyer",
+        "relationship": "father",
+        "date_of_birth": "1962-04-12",
+    }
+
+    other_user = await client.put(
+        f"/v1/patients/{created.json()['id']}",
+        headers={"X-Dev-User": "other_user"},
+        json={"name": "Changed", "relationship": "other", "date_of_birth": None},
+    )
+    assert other_user.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_new_patient_has_an_empty_health_record(client: AsyncClient) -> None:
+    patient = await client.post("/v1/patients", json={"name": "Appa", "relationship": "father"})
+
+    health = await client.get(f"/v1/patients/{patient.json()['id']}/health")
+    assert health.status_code == 200
+    assert health.json() == {"data": {}, "updated_at": None}

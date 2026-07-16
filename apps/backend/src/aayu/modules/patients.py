@@ -44,3 +44,18 @@ async def create_patient(
     await session.commit()
     await session.refresh(patient)
     return patient
+
+
+@router.put("/{patient_id}", response_model=PatientView)
+async def update_patient(
+    patient_id: uuid.UUID,
+    body: PatientCreate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> Patient:
+    patient = await owned_patient(patient_id, user, session)
+    for field, value in body.model_dump().items():
+        setattr(patient, field, value)
+    await session.commit()
+    await session.refresh(patient)
+    return patient

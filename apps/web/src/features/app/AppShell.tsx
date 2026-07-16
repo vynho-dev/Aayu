@@ -1,4 +1,3 @@
-import { UserButton } from "@clerk/react";
 import type { ReactNode } from "react";
 
 import { Icon, type IconName } from "./Icon";
@@ -12,8 +11,6 @@ const NAV: { id: Tab; label: string; icon: IconName; primary?: boolean }[] = [
   { id: "schemes", label: "Schemes", icon: "schemes" },
   { id: "profile", label: "Profile", icon: "profile" },
 ];
-
-const clerkActive = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
 function Sidebar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
   return (
@@ -57,24 +54,6 @@ function Sidebar({ active, onNav }: { active: Tab; onNav: (id: Tab) => void }) {
         })}
       </nav>
       <div style={{ flex: 1 }} />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "var(--space-3)",
-          borderTop: "0.5px solid var(--aayu-border)",
-        }}
-      >
-        {clerkActive ? (
-          <>
-            <UserButton />
-            <span className="aayu-text-caption" style={{ color: "var(--aayu-text-secondary)" }}>Your account</span>
-          </>
-        ) : (
-          <span className="aayu-text-caption" style={{ color: "var(--aayu-text-muted)" }}>Development session</span>
-        )}
-      </div>
     </aside>
   );
 }
