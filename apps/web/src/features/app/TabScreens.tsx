@@ -6,6 +6,7 @@ import {
   useHealthQuery,
   useEligibilityMatchesQuery,
   useSaveEligibilityProfileMutation,
+  type EligibilityMatch,
   type EmploymentType,
   type Patient,
 } from "../../services/api";
@@ -95,8 +96,6 @@ export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | 
               <p className="mt-1 text-sm leading-relaxed text-[#123C3A]">{record.summary}</p>
             </div>
           )}
-          <ChipCard label="Conditions" items={record.conditions} />
-          <ChipCard label="Medications" items={record.medications} />
           <ChipCard label="Lab findings" items={record.lab_findings} />
           <ChipCard label="Procedures" items={record.procedures} />
           <ChipCard label="Tests" items={record.tests} />
@@ -139,11 +138,33 @@ export function HealthScreen({ patient, onViewDocuments }: { patient: Patient | 
   );
 }
 
+function SchemeMatchCard({ scheme }: { scheme: EligibilityMatch }) {
+  return (
+    <div className="aayu-card grid gap-2">
+      <span className="font-medium text-[#123C3A]">{scheme.name}</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">{scheme.authority}</span>
+      <p className="text-sm leading-relaxed text-[#55706C]">{scheme.benefit_summary}</p>
+      <p className="text-sm leading-relaxed text-[#55706C]">{scheme.explanation}</p>
+      <a className="text-sm font-medium text-[#0F6E56] underline" href={scheme.official_url} target="_blank" rel="noreferrer">
+        Official source
+      </a>
+    </div>
+  );
+}
+
 export function SchemesScreen({ patient }: { patient: Patient | null }) {
   const [saveProfile, profileState] = useSaveEligibilityProfileMutation();
-  const { data, isFetching: isMatching } = useEligibilityMatchesQuery(patient?.id ?? "", { skip: !patient?.id });
+  const { data, isFetching } = useEligibilityMatchesQuery(patient?.id ?? "", { skip: !patient?.id });
   const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [formOpenOverride, setFormOpenOverride] = useState<boolean | null>(null);
+
   const matches = data ?? [];
+  const hasMatches = matches.length > 0;
+  const firstLoadPending = isFetching && data === undefined;
+  const formOpen = formOpenOverride ?? !hasMatches;
+  const busy = profileState.isLoading || isFetching;
+  const checked = submitted || hasMatches;
 
   async function checkEligibility(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -159,6 +180,8 @@ export function SchemesScreen({ patient }: { patient: Patient | null }) {
         has_disability: form.get("has_disability") === "on",
         is_pregnant_or_recent_mother: form.get("is_pregnant_or_recent_mother") === "on",
       }).unwrap();
+      setSubmitted(true);
+      setFormOpenOverride(null);
     } catch {
       setError("We couldn&rsquo;t check eligibility. Please try again.");
     }
@@ -172,59 +195,69 @@ export function SchemesScreen({ patient }: { patient: Patient | null }) {
         record and isn&rsquo;t shared outside Aayu.
       </p>
 
-      <form className="aayu-card grid gap-5" onSubmit={checkEligibility}>
-        <label>
-          Monthly household income (INR)
-          <input required name="monthly_household_income" type="number" min={0} />
-        </label>
-        <label>
-          Employment type
-          <select required name="employment_type" defaultValue="unorganized_sector_or_self_employed">
-            {Object.entries(EMPLOYMENT_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </label>
-        <div className="grid gap-2">
-          <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
-            Has a BPL or Antyodaya ration card
-            <input name="has_bpl_or_antyodaya_ration_card" type="checkbox" className="shrink-0" />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
-            Has a disability
-            <input name="has_disability" type="checkbox" className="shrink-0" />
-          </label>
-          <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
-            Pregnant or a recent mother
-            <input name="is_pregnant_or_recent_mother" type="checkbox" className="shrink-0" />
-          </label>
-        </div>
-        <button className="primary-button" disabled={!patient || profileState.isLoading || isMatching}>
-          Check eligibility
-        </button>
-      </form>
+      {firstLoadPending && <div className="aayu-card text-[#55706C]">Checking eligibility…</div>}
 
-      {(profileState.isLoading || isMatching) && (
-        <div className="aayu-card text-[#55706C]">Checking eligibility…</div>
+      {!firstLoadPending && (
+        <>
+          {hasMatches && (
+            <>
+              <p className="text-sm text-[#55706C]">Based on the eligibility details you saved.</p>
+              {matches.map((scheme) => (
+                <SchemeMatchCard key={scheme.scheme_code} scheme={scheme} />
+              ))}
+              <button
+                type="button"
+                className="secondary-button w-fit"
+                onClick={() => setFormOpenOverride(!formOpen)}
+              >
+                Update details
+              </button>
+            </>
+          )}
+
+          {formOpen && (
+            <form className="aayu-card grid gap-5" onSubmit={checkEligibility}>
+              <label>
+                Monthly household income (INR)
+                <input required name="monthly_household_income" type="number" min={0} />
+              </label>
+              <label>
+                Employment type
+                <select required name="employment_type" defaultValue="unorganized_sector_or_self_employed">
+                  {Object.entries(EMPLOYMENT_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </label>
+              <div className="grid gap-2">
+                <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
+                  Has a BPL or Antyodaya ration card
+                  <input name="has_bpl_or_antyodaya_ration_card" type="checkbox" className="shrink-0" />
+                </label>
+                <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
+                  Has a disability
+                  <input name="has_disability" type="checkbox" className="shrink-0" />
+                </label>
+                <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
+                  Pregnant or a recent mother
+                  <input name="is_pregnant_or_recent_mother" type="checkbox" className="shrink-0" />
+                </label>
+              </div>
+              <button className="primary-button" disabled={!patient || busy}>
+                Check eligibility
+              </button>
+            </form>
+          )}
+
+          {busy && <div className="aayu-card text-[#55706C]">Checking eligibility…</div>}
+
+          {error && <div className="aayu-card text-[#A23D32]" role="alert">{error}</div>}
+
+          {!busy && checked && matches.length === 0 && (
+            <div className="aayu-card text-[#55706C]">No schemes matched based on these details.</div>
+          )}
+        </>
       )}
-
-      {error && <div className="aayu-card text-[#A23D32]" role="alert">{error}</div>}
-
-      {data && !isMatching && matches.length === 0 && (
-        <div className="aayu-card text-[#55706C]">No schemes matched based on these details.</div>
-      )}
-
-      {matches.map((scheme) => (
-        <div key={scheme.scheme_code} className="aayu-card grid gap-2">
-          <span className="font-medium text-[#123C3A]">{scheme.name}</span>
-          <span className="text-xs font-medium uppercase tracking-wide text-[#8A8F8C]">{scheme.authority}</span>
-          <p className="text-sm leading-relaxed text-[#55706C]">{scheme.benefit_summary}</p>
-          <p className="text-sm leading-relaxed text-[#55706C]">{scheme.explanation}</p>
-          <a className="text-sm font-medium text-[#0F6E56] underline" href={scheme.official_url} target="_blank" rel="noreferrer">
-            Official source
-          </a>
-        </div>
-      ))}
     </section>
   );
 }
