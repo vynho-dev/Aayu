@@ -165,6 +165,7 @@ export function SchemesScreen({ patient }: { patient: Patient | null }) {
   const formOpen = formOpenOverride ?? !hasMatches;
   const busy = profileState.isLoading || isFetching;
   const checked = submitted || hasMatches;
+  const profile = patient?.profile;
 
   async function checkEligibility(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -219,11 +220,11 @@ export function SchemesScreen({ patient }: { patient: Patient | null }) {
             <form className="aayu-card grid gap-5" onSubmit={checkEligibility}>
               <label>
                 Monthly household income (INR)
-                <input required name="monthly_household_income" type="number" min={0} />
+                <input required name="monthly_household_income" type="number" min={0} defaultValue={profile?.monthly_household_income ?? ""} />
               </label>
               <label>
                 Employment type
-                <select required name="employment_type" defaultValue="unorganized_sector_or_self_employed">
+                <select required name="employment_type" defaultValue={profile?.employment_type ?? "unorganized_sector_or_self_employed"}>
                   {Object.entries(EMPLOYMENT_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>{label}</option>
                   ))}
@@ -232,15 +233,15 @@ export function SchemesScreen({ patient }: { patient: Patient | null }) {
               <div className="grid gap-2">
                 <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
                   Has a BPL or Antyodaya ration card
-                  <input name="has_bpl_or_antyodaya_ration_card" type="checkbox" className="shrink-0" />
+                  <input name="has_bpl_or_antyodaya_ration_card" type="checkbox" className="shrink-0" defaultChecked={profile?.has_bpl_or_antyodaya_ration_card ?? false} />
                 </label>
                 <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
                   Has a disability
-                  <input name="has_disability" type="checkbox" className="shrink-0" />
+                  <input name="has_disability" type="checkbox" className="shrink-0" defaultChecked={profile?.has_disability ?? false} />
                 </label>
                 <label className="flex items-center justify-between gap-3 rounded-lg border border-[#E4E2DA] px-3 py-2.5 font-normal">
                   Pregnant or a recent mother
-                  <input name="is_pregnant_or_recent_mother" type="checkbox" className="shrink-0" />
+                  <input name="is_pregnant_or_recent_mother" type="checkbox" className="shrink-0" defaultChecked={profile?.is_pregnant_or_recent_mother ?? false} />
                 </label>
               </div>
               <button className="primary-button" disabled={!patient || busy}>

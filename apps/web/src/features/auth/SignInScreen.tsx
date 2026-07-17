@@ -1,10 +1,4 @@
-import { SignIn, SignUp } from "@clerk/react";
-import { useState } from "react";
-
-
-const HERO_IMG =
-  "https://images.unsplash.com/photo-1762955911431-4c44c7c3f408?auto=format&fit=crop&w=900&q=80";
-
+import { SignIn } from "@clerk/react";
 
 const appearance = {
   variables: {
@@ -18,93 +12,38 @@ const appearance = {
   },
   elements: {
     rootBox: { width: "100%" },
-    card: { boxShadow: "none", border: "none", backgroundColor: "transparent" },
-    headerTitle: { fontWeight: 500 },
-    formButtonPrimary: { fontWeight: 500 },
+    card: { boxShadow: "none", border: "none", backgroundColor: "transparent", width: "100%" },
+    header: { display: "none" },
     footer: { background: "transparent" },
-    footerAction: { display: "none" }, // our own toggle sits below, prototype-style
+    formButtonPrimary: { fontWeight: 500 },
   },
 };
 
-function AvatarStack() {
-  const tints = ["#9FE1CB", "#1D9E75", "#0F6E56"];
-  return (
-    <div className="flex items-center">
-      {tints.map((c, i) => (
-        <span
-          key={c}
-          aria-hidden="true"
-          className="grid h-7 w-7 place-items-center rounded-full border-2 border-white"
-          style={{ background: c, marginLeft: i === 0 ? 0 : -10 }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-          </svg>
-        </span>
-      ))}
-    </div>
-  );
+function initialValues(identifier: string) {
+  const trimmed = identifier.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.includes("@")) return { emailAddress: trimmed };
+  const digits = trimmed.replace(/[^\d+]/g, "");
+  return { phoneNumber: digits.startsWith("+") ? digits : `+91${digits}` };
 }
 
-export function SignInScreen() {
-  const [signup, setSignup] = useState(true);
+export function SignInScreen({ open, identifier, onClose }: { open: boolean; identifier: string; onClose: () => void }) {
+  if (!open) return null;
 
   return (
-    <main className="grid min-h-screen w-full place-items-center p-4 sm:p-8">
-      <div className="grid w-full max-w-7xl overflow-hidden rounded-2xl bg-(--aayu-surface-card) shadow-(--elevation-2) md:grid-cols-2">
-        {/* Brand panel */}
-        <aside className="hidden flex-col gap-6 bg-(--aayu-teal-50) p-8 md:flex md:h-full">
-          <span className="aayu-text-h1 font-medium text-(--aayu-teal-600)">Aayu</span>
-          <h1 className="aayu-text-display font-medium leading-tight text-(--aayu-ink-900)">
-            Your family&rsquo;s health,
-            <br />
-            in the <span className="underline decoration-(--aayu-teal-400) decoration-2 underline-offset-4">best hands</span>
-          </h1>
-          <div className="flex w-fit items-center gap-3 rounded-full border border-(--aayu-border) bg-(--aayu-surface-card) px-3 py-2 shadow-(--elevation-1)">
-            <AvatarStack />
-            <span className="aayu-text-body-sm font-medium text-(--aayu-text-primary)">
-              1,293 families protected
-            </span>
+    <div className="fixed inset-0 z-50 grid place-items-end bg-black/45 p-0 sm:place-items-center sm:p-6" role="presentation">
+      <section aria-labelledby="auth-title" aria-modal="true" role="dialog" className="max-h-[92vh] w-full max-w-115 overflow-y-auto rounded-t-3xl bg-(--aayu-surface-card) p-6 shadow-2xl sm:rounded-2xl sm:p-8">
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <span className="aayu-text-h1 font-medium text-(--aayu-teal-600)">Aayu</span>
+            <h1 id="auth-title" className="aayu-text-h2 mt-4 font-medium text-(--aayu-ink-900)">Continue to your care space</h1>
+            <p className="aayu-text-body-sm mt-2 text-(--aayu-text-secondary)">Use your email or mobile number. New and returning users continue in one simple flow.</p>
           </div>
-          <img
-            src={HERO_IMG}
-            alt="A caregiver helping an elderly couple at home"
-            loading="lazy"
-            className="min-h-64 w-full flex-1 rounded-xl object-cover"
-          />
-        </aside>
-
-        {/* Auth panel */}
-        <section className="flex flex-col items-center justify-center gap-5 px-4 py-6 sm:p-10">
-          <span className="aayu-text-h1 font-medium text-(--aayu-teal-600) md:hidden">Aayu</span>
-
-          <div className="flex w-full max-w-100 justify-center">
-            {signup ? (
-              <SignUp routing="hash" appearance={appearance} />
-            ) : (
-              <SignIn routing="hash" appearance={appearance} />
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setSignup((s) => !s)}
-            className="aayu-text-body-sm text-(--aayu-teal-600)"
-            style={{ fontFamily: "var(--font-sans)" }}
-          >
-            {signup ? "Already have an account? Log in" : "New here? Create an account"}
-          </button>
-
-          <span className="aayu-text-caption inline-flex items-center gap-1.5 rounded-full bg-(--aayu-teal-50) px-3 py-1.5 font-medium text-(--aayu-teal-900)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="3" y="11" width="18" height="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-            Your data is encrypted
-          </span>
-        </section>
-      </div>
-    </main>
+          <button type="button" onClick={onClose} aria-label="Close sign in" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-(--aayu-border) text-(--aayu-text-secondary)">×</button>
+        </div>
+        <SignIn key={identifier} routing="hash" withSignUp initialValues={initialValues(identifier)} appearance={appearance} fallbackRedirectUrl="/" />
+        <p className="aayu-text-caption mt-5 text-center text-(--aayu-text-secondary)">Your medical information is private and used only to provide Aayu&rsquo;s services.</p>
+      </section>
+    </div>
   );
 }

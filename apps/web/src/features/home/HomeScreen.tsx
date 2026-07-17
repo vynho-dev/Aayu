@@ -129,7 +129,7 @@ export function HomeScreen({ patient, onNewClaim, onViewClaim, onAskPolicy, onVi
   const healthReady = (health?.data.documents?.length ?? 0) > 0;
   const hasClaim = Boolean(claim?.assessment);
   const profile = patient?.profile;
-  const profileSignals = [profile?.blood_group, profile?.insurance_provider, profile?.emergency_contact_name, profile?.preferred_doctor, ...(profile?.chronic_conditions ?? []), ...(profile?.medications ?? [])].filter(Boolean).length;
+  const profileSignals = [profile?.state, profile?.insurance_status, profile?.insurance_provider, profile?.emergency_contact_name, profile?.preferred_hospital, profile?.abha_number, ...(profile?.chronic_conditions ?? []), ...(profile?.medications ?? [])].filter(Boolean).length;
   const profileReady = profileSignals >= 3;
   const nextAction = !profileReady
     ? { title: "Complete the care profile", body: "Add insurance, medical history, emergency contact, and care preferences so every claim starts with the right facts.", label: "Complete profile", onClick: () => onNav("profile"), icon: "profile" as IconName }

@@ -3,9 +3,9 @@ import { useEffect } from "react";
 
 import { enableDevelopmentIdentity, setSessionToken } from "./app/authSlice";
 import { useAppDispatch, useAppSelector } from "./app/store";
-import { SignInScreen } from "./features/auth/SignInScreen";
 import { AppLoadingSkeleton } from "./features/app/Skeleton";
 import { HeroFlow } from "./features/claim/HeroFlow";
+import { PublicLanding } from "./features/home/PublicLanding";
 
 export function DevelopmentApp() {
   const dispatch = useAppDispatch();
@@ -25,7 +25,7 @@ export function ClerkApp() {
     return () => { active = false; window.clearInterval(timer); };
   }, [dispatch, getToken, isSignedIn]);
   if (!isLoaded) return <AppLoadingSkeleton />;
-  if (!isSignedIn) return <SignInScreen />;
+  if (!isSignedIn) return <PublicLanding />;
   return <ReadyApp />;
 }
 
