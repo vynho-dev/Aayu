@@ -11,11 +11,12 @@ import {
   useDeletePatientMutation,
   useJobQuery,
   usePatientsQuery,
+  useSaveEligibilityProfileMutation,
   useUpdatePatientMutation,
   useWithdrawConsentMutation,
   uploadFile,
 } from "../../services/api";
-import type { Patient, PatientInput } from "../../services/api";
+import type { EligibilityProfileInput, Patient, PatientInput } from "../../services/api";
 import { AppShell, type Tab } from "../app/AppShell";
 import { ConfirmDialog } from "../app/ConfirmDialog";
 import { Icon } from "../app/Icon";
@@ -32,6 +33,29 @@ type ClaimStep = "consent" | "upload" | "processing";
 type UploadMode = "claim" | "document";
 
 const clerkActive = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+const relationshipLabels: Record<string, string> = {
+  self: "Myself",
+  mother: "Mother",
+  father: "Father",
+  spouse: "Spouse or partner",
+  child: "Child",
+  sibling: "Sibling",
+  family_member: "Family member",
+  other: "Other",
+};
+const relationshipLabel = (relationship: string) => relationshipLabels[relationship] ?? relationship;
+
+function eligibilityFrom(input: PatientInput): EligibilityProfileInput | null {
+  const profile = input.profile;
+  if (profile.monthly_household_income === null || !profile.employment_type) return null;
+  return {
+    monthly_household_income: profile.monthly_household_income,
+    employment_type: profile.employment_type as EligibilityProfileInput["employment_type"],
+    has_bpl_or_antyodaya_ration_card: profile.has_bpl_or_antyodaya_ration_card,
+    has_disability: profile.has_disability,
+    is_pregnant_or_recent_mother: profile.is_pregnant_or_recent_mother,
+  };
+}
 
 export function HeroFlow() {
   const token = useAppSelector((state) => state.auth.token);
@@ -43,6 +67,7 @@ export function HeroFlow() {
   const [withdrawConsent, withdrawConsentState] = useWithdrawConsentMutation();
   const [createIntent, intentState] = useCreateUploadIntentMutation();
   const [completeUpload] = useCompleteUploadMutation();
+  const [saveEligibilityProfile] = useSaveEligibilityProfileMutation();
 
   const [patientId, setPatientId] = useState("");
   const [skippedProfile, setSkippedProfile] = useState(false);
@@ -93,6 +118,8 @@ export function HeroFlow() {
     setPatientMessage("");
     try {
       const created = await createPatient(input).unwrap();
+      const eligibility = eligibilityFrom(input);
+      if (eligibility) await saveEligibilityProfile({ patientId: created.id, ...eligibility }).unwrap();
       setPatientId(created.id);
       setTab(destination);
       return true;
@@ -110,6 +137,8 @@ export function HeroFlow() {
     setPatientMessage("");
     try {
       const saved = await updatePatient({ patientId: editingPatient!.id, body: input }).unwrap();
+      const eligibility = eligibilityFrom(input);
+      if (eligibility) await saveEligibilityProfile({ patientId: saved.id, ...eligibility }).unwrap();
       setPatientId(saved.id);
       setEditingPatient(null);
       setTab("profile");
@@ -204,7 +233,7 @@ export function HeroFlow() {
 
   if (isLoading) return <AppLoadingSkeleton />;
 
-  // Profile setup — create or select a patient, or skip and do it later.
+  // Profile setup — choose a person first; medical and scheme detail can be added gradually.
   if (!patientId && !skippedProfile) {
     return (
       <>
@@ -212,14 +241,13 @@ export function HeroFlow() {
           <header className="aayu-text-h1 mb-10 font-medium text-(--aayu-teal-600)">Aayu</header>
           <section aria-labelledby="patient-title">
             <p className="aayu-text-body-sm mb-2 text-(--aayu-text-secondary)">{patients.length ? "Welcome back" : "Let’s get started"}</p>
-            <h1 id="patient-title" className="aayu-text-display mb-3 font-medium text-(--aayu-ink-900)">Who needs care today?</h1>
-            <p className="aayu-text-body-sm mb-8 text-(--aayu-text-secondary)">{patients.length ? "Choose a family profile to continue, or add someone new." : "Create a profile to keep health records, documents, and claims together."}</p>
-            {patients.length > 0 && (
-              <div className="mb-8 grid gap-3" aria-label="Your family profiles">
-                <p className="aayu-text-label font-medium uppercase tracking-wide text-(--aayu-text-secondary)">Your family</p>
+            <h1 id="patient-title" className="aayu-text-display mb-3 font-medium text-(--aayu-ink-900)">{editingPatient === "new" ? "Add a care profile" : patients.length ? "Choose a person" : "Create the first care profile"}</h1>
+            <p className="aayu-text-body-sm mb-8 text-(--aayu-text-secondary)">{editingPatient === "new" ? "Start with the basics. You can skip any detail you do not have yet." : patients.length ? "Each person has a separate health, claims, and scheme view." : "Start with yourself, a parent, or another family member. You can build out the details gradually."}</p>
+            {patients.length > 0 && editingPatient !== "new" && (
+              <div className="mb-8 grid gap-3 sm:grid-cols-2" aria-label="Your care profiles">
                 {patients.map((existing) => (
                   <button key={existing.id}
-                    className="aayu-card flex items-center justify-between gap-3 text-left transition hover:border-(--aayu-teal-600)"
+                    className="aayu-card flex min-h-34 flex-col items-start justify-between gap-3 text-left transition hover:border-(--aayu-teal-600)"
                     onClick={() => { setPatientId(existing.id); setTab("home"); }}
                     type="button"
                     aria-label={`Continue as ${existing.name}`}
@@ -228,26 +256,23 @@ export function HeroFlow() {
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--aayu-teal-100) aayu-text-h2 font-medium text-(--aayu-teal-800)">{existing.name.charAt(0).toUpperCase()}</span>
                       <span className="min-w-0">
                         <span className="aayu-text-body-sm block font-medium text-(--aayu-text-primary)">{existing.name}</span>
-                        <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{existing.relationship}</span>
+                        <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{relationshipLabel(existing.relationship)}</span>
                       </span>
                     </span>
-                    <span className="aayu-text-body-sm shrink-0 font-medium text-(--aayu-teal-600)">Continue →</span>
+                    <span className="aayu-text-body-sm shrink-0 font-medium text-(--aayu-teal-600)">Open profile →</span>
                   </button>
                 ))}
+                <button type="button" onClick={() => { setPatientMessage(""); setEditingPatient("new"); }} className="flex min-h-34 flex-col items-start justify-center gap-3 rounded-xl border border-dashed border-(--aayu-border-strong) bg-transparent p-6 text-left"><span className="grid h-10 w-10 place-items-center rounded-full bg-(--aayu-teal-50) text-(--aayu-teal-700)">+</span><span><span className="aayu-text-body-sm block font-medium">Add a person</span><span className="aayu-text-caption text-(--aayu-text-secondary)">Parent, child, partner, or another dependent</span></span></button>
               </div>
             )}
-            {patients.length > 0 && <p className="aayu-text-label mb-3 font-medium uppercase tracking-wide text-(--aayu-text-secondary)">Add someone new</p>}
-            <PatientForm
+            {(patients.length === 0 || editingPatient === "new") && <PatientForm
               busy={patientState.isLoading}
               message={patientMessage}
-              submitLabel="Add and continue"
-              detailed={false}
-              onSave={async (input) => { await createAndSelectPatient(input, "home"); }}
-              secondaryAction={
-                <button type="button" onClick={() => setSkippedProfile(true)} className="secondary-button">Browse first</button>
-              }
-            />
-            <p className="aayu-text-body-sm mt-4 text-(--aayu-text-secondary)">You can explore Aayu without a profile. We’ll ask for one only when you upload a document or start a claim.</p>
+              submitLabel="Save profile"
+              onCancel={patients.length ? () => setEditingPatient(null) : undefined}
+              onSave={async (input) => { if (await createAndSelectPatient(input, "home")) setEditingPatient(null); }}
+            />}
+            {patients.length === 0 && <button type="button" onClick={() => setSkippedProfile(true)} className="aayu-text-body-sm mt-4 font-medium text-(--aayu-teal-700)">Browse Aayu first</button>}
           </section>
         </main>
         {pendingDelete && (
@@ -332,7 +357,7 @@ export function HeroFlow() {
           busy={patientState.isLoading || updatePatientState.isLoading}
           onCancel={() => setEditingPatient(null)}
           onSave={savePatient}
-          submitLabel={editingPatient === "new" ? "Add patient" : undefined}
+          submitLabel={editingPatient === "new" ? "Save profile" : undefined}
           message={patientMessage}
         />
       </section>
@@ -504,8 +529,8 @@ function ProfileScreen({ patient, patients, onAddPatient, onEditPatient, onSelec
       </div>
       <div className="grid gap-3">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="aayu-text-label font-medium uppercase tracking-wide text-(--aayu-text-secondary)">Family profiles</h2>
-          <button type="button" onClick={onAddPatient} className="aayu-text-body-sm font-medium text-(--aayu-teal-600)">Add patient</button>
+          <h2 className="aayu-text-label font-medium uppercase tracking-wide text-(--aayu-text-secondary)">Care profiles</h2>
+          <button type="button" onClick={onAddPatient} className="aayu-text-body-sm font-medium text-(--aayu-teal-600)">Add profile</button>
         </div>
         {patients.length === 0 && (
           <p className="aayu-text-body-sm text-(--aayu-text-secondary)">No profiles yet — add one to start a claim or build a health record.</p>
@@ -523,7 +548,7 @@ function ProfileScreen({ patient, patients, onAddPatient, onEditPatient, onSelec
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-(--aayu-teal-100) aayu-text-body font-medium text-(--aayu-teal-900)">{existing.name.charAt(0).toUpperCase()}</span>
                   <span className="grid gap-1">
                   <span className="aayu-text-body-sm font-medium text-(--aayu-text-primary)">{existing.name}</span>
-                  <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{existing.relationship}{existing.date_of_birth ? ` · ${existing.date_of_birth}` : ""}</span>
+                  <span className="aayu-text-body-sm text-(--aayu-text-secondary)">{relationshipLabel(existing.relationship)}{existing.date_of_birth ? ` · ${existing.date_of_birth}` : ""}</span>
                   </span>
                 </span>
               </button>

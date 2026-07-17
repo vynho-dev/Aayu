@@ -12,7 +12,11 @@ export type Patient = {
 
 export type PatientProfile = {
   gender: string | null;
+  state: string | null;
+  district: string | null;
+  pincode: string | null;
   blood_group: string | null;
+  insurance_status: string | null;
   insurance_provider: string | null;
   insurance_policy_number: string | null;
   insurance_policy_expiry: string | null;
@@ -26,6 +30,13 @@ export type PatientProfile = {
   emergency_contact_phone: string | null;
   preferred_hospital: string | null;
   preferred_doctor: string | null;
+  abha_number: string | null;
+  ayushman_card_number: string | null;
+  monthly_household_income: number | null;
+  employment_type: string | null;
+  has_bpl_or_antyodaya_ration_card: boolean;
+  has_disability: boolean;
+  is_pregnant_or_recent_mother: boolean;
 };
 
 export type PatientInput = Omit<Patient, "id">;

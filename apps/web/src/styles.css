@@ -23,7 +23,7 @@ body {
   body { background-attachment: scroll; }
 }
 
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: wait; opacity: 0.65; }
 
@@ -56,7 +56,7 @@ label.flex {
   display: flex;
 }
 
-input, select {
+input, select, textarea {
   width: 100%;
   min-height: var(--tap-target);
   border: 1px solid var(--aayu-border-strong);

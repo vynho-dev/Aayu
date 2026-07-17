@@ -80,7 +80,11 @@ async def test_patient_profile_can_be_updated_by_its_owner(client: AsyncClient) 
         "date_of_birth": "1962-04-12",
         "profile": {
             "gender": None,
+            "state": None,
+            "district": None,
+            "pincode": None,
             "blood_group": None,
+            "insurance_status": None,
             "insurance_provider": None,
             "insurance_policy_number": None,
             "insurance_policy_expiry": None,
@@ -94,6 +98,13 @@ async def test_patient_profile_can_be_updated_by_its_owner(client: AsyncClient) 
             "emergency_contact_phone": None,
             "preferred_hospital": None,
             "preferred_doctor": None,
+            "abha_number": None,
+            "ayushman_card_number": None,
+            "monthly_household_income": None,
+            "employment_type": None,
+            "has_bpl_or_antyodaya_ration_card": False,
+            "has_disability": False,
+            "is_pregnant_or_recent_mother": False,
         },
     }
 
@@ -115,7 +126,11 @@ async def test_patient_profile_keeps_structured_care_and_insurance_details(
             "name": "Amma",
             "relationship": "mother",
             "profile": {
+                "state": "Telangana",
+                "district": "Hyderabad",
+                "pincode": "500001",
                 "blood_group": "O+",
+                "insurance_status": "insured",
                 "insurance_provider": "Aayu Health",
                 "medical_history": ["Appendectomy, 2015"],
                 "allergies": ["Penicillin"],
@@ -124,6 +139,10 @@ async def test_patient_profile_keeps_structured_care_and_insurance_details(
                 "consultation_history": ["2026-07-15 — Dr Rao — diabetes follow-up"],
                 "emergency_contact_name": "Ravi",
                 "preferred_hospital": "City Hospital",
+                "abha_number": "12-3456-7890-1234",
+                "monthly_household_income": 25000,
+                "employment_type": "farmer",
+                "has_bpl_or_antyodaya_ration_card": True,
             },
         },
     )
@@ -131,8 +150,10 @@ async def test_patient_profile_keeps_structured_care_and_insurance_details(
     assert response.status_code == 201
     profile = response.json()["profile"]
     assert profile["blood_group"] == "O+"
+    assert profile["pincode"] == "500001"
     assert profile["allergies"] == ["Penicillin"]
     assert profile["preferred_hospital"] == "City Hospital"
+    assert profile["monthly_household_income"] == 25000
 
 
 @pytest.mark.asyncio

@@ -7,7 +7,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class PatientProfile(BaseModel):
     gender: str | None = Field(default=None, max_length=40)
+    state: str | None = Field(default=None, max_length=80)
+    district: str | None = Field(default=None, max_length=80)
+    pincode: str | None = Field(default=None, max_length=12)
     blood_group: str | None = Field(default=None, max_length=8)
+    insurance_status: str | None = Field(default=None, max_length=40)
     insurance_provider: str | None = Field(default=None, max_length=120)
     insurance_policy_number: str | None = Field(default=None, max_length=120)
     insurance_policy_expiry: date | None = None
@@ -21,6 +25,13 @@ class PatientProfile(BaseModel):
     emergency_contact_phone: str | None = Field(default=None, max_length=32)
     preferred_hospital: str | None = Field(default=None, max_length=160)
     preferred_doctor: str | None = Field(default=None, max_length=160)
+    abha_number: str | None = Field(default=None, max_length=40)
+    ayushman_card_number: str | None = Field(default=None, max_length=40)
+    monthly_household_income: float | None = Field(default=None, ge=0)
+    employment_type: str | None = Field(default=None, max_length=80)
+    has_bpl_or_antyodaya_ration_card: bool = False
+    has_disability: bool = False
+    is_pregnant_or_recent_mother: bool = False
 
 
 class PatientCreate(BaseModel):
