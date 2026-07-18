@@ -87,6 +87,10 @@ input:focus, select:focus, button:focus-visible {
   padding: var(--space-6);
 }
 
+.aayu-card.aayu-card-transparent {
+  background: transparent;
+}
+
 .primary-button {
   min-height: var(--tap-target);
   border: 0;
@@ -124,7 +128,56 @@ input:focus, select:focus, button:focus-visible {
   animation: aayu-shimmer 1.6s ease-in-out infinite;
 }
 
+@keyframes aayu-caret-blink {
+  50% { opacity: 0; }
+}
+
+.aayu-caret {
+  display: inline-block;
+  width: 0.06em;
+  height: 0.85em;
+  margin-left: 0.05em;
+  vertical-align: -0.08em;
+  background: currentColor;
+  animation: aayu-caret-blink 0.9s step-end infinite;
+}
+
+.aayu-caret[data-done="true"] {
+  animation-duration: 1.1s;
+  opacity: 0.6;
+}
+
+@keyframes aayu-popup-in {
+  0% { transform: scale(0.85) translateY(8px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.aayu-popup {
+  display: inline-block;
+  opacity: 0;
+  transform: scale(0.85) translateY(8px);
+  transform-origin: left center;
+}
+
+.aayu-popup[data-show="true"] {
+  animation: aayu-popup-in 1.2s ease-out forwards;
+}
+
+@keyframes aayu-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -14px, 0) scale(1.015); }
+}
+
+.aayu-float-card {
+  animation: aayu-float 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
   .aayu-skeleton { animation: none; background: var(--aayu-surface-muted); }
+  .aayu-caret { animation: none; opacity: 0; }
+  .aayu-popup { animation: none; opacity: 1; transform: none; }
+  .aayu-float-card { animation: none; }
 }
